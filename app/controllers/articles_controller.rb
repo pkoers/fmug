@@ -9,6 +9,8 @@ class ArticlesController < ApplicationController
   end
 
   def index
+    # grab all the articles for the index page
+    @articles = Article.all
   end
 
   def destroy

@@ -1,8 +1,13 @@
 # Flight Management User Group (FMUG)
-Twice a year, the FMUG holds a conference to share updates, experiences, etc. Information on these conferences is shared on [FMUG.EU](https://FMUG.EU), which is hosted on a free WordPress instance with mandatory advertisment. This information consists of conference dates, location information, etc. 
+Twice a year, the FMUG holds a conference to share updates, experiences, etc. Information on these conferences is shared on [FMUG.EU](https://FMUG.EU), which is hosted on a free WordPress instance with mandatory advertisment. The information on the website consists of conference dates, location information, etc. 
 
 ## Project Goal
-The goal is to move away from the WordPress instance and implement an independent site running on the Ruby on Rails framework.
+The goal is to move away from the WordPress instance and implement an independent site running on the Ruby on Rails framework. First feature to implement is to show information posted by the Chair and Vice-Chair.
+Additional Features include:
+- Communication tool with the chair and vice-chair
+- Distribution list for conference invites
+- Registering form for upcomming conferences and to add agenda items
+- ...
 
 ## Status
 The current status is: initial stage

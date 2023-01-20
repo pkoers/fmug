@@ -1,2 +1,5 @@
-<h1>Categories#new</h1>
-<p>Find me in app/views/categories/new.html.erb</p>
+<h1>Adding a new category</h1>
+<%= simple_form_for(@category) do |f| %>
+  <%= f.input :name %>
+  <%= f.submit "Add Category"%>
+<% end %>

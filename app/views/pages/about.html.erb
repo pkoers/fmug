@@ -1,7 +1,59 @@
-<h1 class="text-3xl font-bold underline">Our first view 🚀</h1>
-<div>
-  <p>
-    <sl-button>Button</sl-button>
-  </p>
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  .navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: rgba(248, 248, 248, 0.9);
+    border-bottom: 1px solid #ddd;
+    padding: 10px 0;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  .nav-button {
+    background-color: transparent;
+    border: none;
+    padding: 10px 20px;
+    margin: 0 10px;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 50px;
+  }
+  .nav-button:hover {
+    background-color: gray;
+    color: white;
+  }
+  .nav-button {
+    background-color: transparent;
+    border: none;
+    padding: 10px 20px;
+    margin: 0 10px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  .nav-button:hover {
+    background-color: lightgray;
+    color: white;
+  }
+</style>
+
+<nav class="navbar">
+  <%= button_tag "Button 1", class: "nav-button" %>
+  <%= button_tag "Button 2", class: "nav-button" %>
+  <%= button_tag "Button 3", class: "nav-button" %>
+  <%= button_tag "Button 4", class: "nav-button" %>
+</nav>
+
+<div style="margin-top: 70px;">
+  <!-- Page content goes here -->
+  <h1>About Page</h1>
+  <p>This is the about page content.</p>
+  <div style="text-align: center;">
+    <%= image_tag "fmug-400dpiLogo.jpeg", alt: "FMUG Logo", class: "center-image" %>
+  </div>
 </div>
-<br>

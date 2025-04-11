@@ -1,2 +1,33 @@
 <div id="<%= dom_id conference %>" class="w-full sm:w-auto my-5 space-y-5">
+  <div class="my-5">
+    <div class="mb-4">
+      <strong class="block font-medium mb-1">Edition:</strong>
+      <%= conference.edition %>
+    </div>
+
+    <div class="mb-4">
+      <strong class="block font-medium mb-1">Start date:</strong>
+      <%= conference.start_date %>
+    </div>
+
+    <div class="mb-4">
+      <strong class="block font-medium mb-1">End date:</strong>
+      <%= conference.end_date %>
+    </div>
+
+    <div class="mb-4">
+      <strong class="block font-medium mb-1">Host:</strong>
+      <%= conference.host %>
+    </div>
+
+    <div class="mb-4">
+      <strong class="block font-medium mb-1">Location:</strong>
+      <%= conference.location %>
+    </div>
+
+    <div class="mb-4">
+      <strong class="block font-medium mb-1">Current:</strong>
+      <%= conference.current %>
+    </div>
+  </div>
 </div>

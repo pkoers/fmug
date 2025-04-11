@@ -60,11 +60,11 @@ class ConferencesController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_conference
-      @conference = Conference.find(params.expect(:id))
+      @conference = Conference.find(params[:id])
     end
 
     # Only allow a list of trusted parameters through.
     def conference_params
-      params.fetch(:conference, {})
+      params.require(:conference).permit(:edition, :location, :start_date, :end_date, :host, :current)
     end
 end

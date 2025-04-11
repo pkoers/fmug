@@ -1,7 +1,8 @@
 class Conference < ApplicationRecord
-  has_many :schedules, dependent: :destroy, if: -> { current? }
+  has_many :schedules, dependent: :destroy
 
-  # Example method to check if the conference is current
+  scope :current_conference, -> { where(current: true) }
+
   def current?
     self.current
   end

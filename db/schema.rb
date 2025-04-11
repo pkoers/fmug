@@ -10,35 +10,32 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2023_01_18_210244) do
+ActiveRecord::Schema[8.0].define(version: 2025_04_11_200127) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
-  create_table "articles", force: :cascade do |t|
-    t.text "content"
-    t.bigint "user_id"
-    t.bigint "category_id"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["category_id"], name: "index_articles_on_category_id"
-    t.index ["user_id"], name: "index_articles_on_user_id"
-  end
-
-  create_table "categories", force: :cascade do |t|
-    t.string "name"
+  create_table "conferences", force: :cascade do |t|
+    t.integer "edition"
+    t.date "start_date"
+    t.date "end_date"
+    t.string "host"
+    t.text "location"
+    t.boolean "current"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
 
-  create_table "users", force: :cascade do |t|
-    t.string "email", default: "", null: false
-    t.string "encrypted_password", default: "", null: false
-    t.string "reset_password_token"
-    t.datetime "reset_password_sent_at"
-    t.datetime "remember_created_at"
+  create_table "schedules", force: :cascade do |t|
+    t.integer "edition"
+    t.bigint "conference_id", null: false
+    t.date "date"
+    t.time "time"
+    t.integer "length"
+    t.text "description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["email"], name: "index_users_on_email", unique: true
-    t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.index ["conference_id"], name: "index_schedules_on_conference_id"
   end
+
+  add_foreign_key "schedules", "conferences"
 end

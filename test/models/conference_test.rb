@@ -9,13 +9,13 @@ class ConferenceTest < ActiveSupport::TestCase
 
   test "non-current conference cannot have schedules" do
     conference = Conference.create!(edition: 1, current: false)
-    schedule = conference.schedules.build(title: "Test Schedule")
+    schedule = conference.schedules.build(start_time: Time.current)
     assert_not schedule.valid?
   end
 
   test "current conference can have schedules" do
     conference = Conference.create!(edition: 1, current: true)
-    schedule = conference.schedules.build(title: "Test Schedule")
+    schedule = conference.schedules.build(start_time: Time.current)
     assert schedule.valid?
   end
 end

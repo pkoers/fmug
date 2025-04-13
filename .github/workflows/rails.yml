@@ -19,7 +19,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: fmug_test
+          POSTGRES_DB: postgres
         ports:
           - 5432:5432
         options: >-
@@ -57,9 +57,9 @@ jobs:
         POSTGRES_PORT: 5432
         POSTGRES_USER: postgres
         POSTGRES_PASSWORD: postgres
-        DATABASE_URL: "postgres://postgres:postgres@localhost:5432/fmug_test"
       run: |
-        cp config/database.yml.github-actions config/database.yml
+        bundle exec rails db:create
+        bundle exec rails db:schema:load
         bundle exec rails db:test:prepare
     
     - name: Run tests
@@ -69,6 +69,5 @@ jobs:
         POSTGRES_PORT: 5432
         POSTGRES_USER: postgres
         POSTGRES_PASSWORD: postgres
-        DATABASE_URL: "postgres://postgres:postgres@localhost:5432/fmug_test"
       run: |
         bundle exec rails test

@@ -17,7 +17,16 @@ class ConferencesControllerTest < ActionDispatch::IntegrationTest
 
   test "should create conference" do
     assert_difference("Conference.count") do
-      post conferences_url, params: { conference: {} }
+      post conferences_url, params: {
+        conference: {
+          edition: 2,
+          start_date: Date.current,
+          end_date: Date.current + 2.days,
+          host: "Test Host",
+          location: "Test Location",
+          current: false
+        }
+      }
     end
 
     assert_redirected_to conference_url(Conference.last)
@@ -34,7 +43,16 @@ class ConferencesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should update conference" do
-    patch conference_url(@conference), params: { conference: {} }
+    patch conference_url(@conference), params: {
+      conference: {
+        edition: @conference.edition,
+        start_date: @conference.start_date,
+        end_date: @conference.end_date,
+        host: @conference.host,
+        location: @conference.location,
+        current: @conference.current
+      }
+    }
     assert_redirected_to conference_url(@conference)
   end
 

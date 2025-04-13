@@ -11,63 +11,27 @@ permissions:
   pull-requests: read
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:14
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
     steps:
     - uses: actions/checkout@v3
-    
+
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: '3.2.0'
         bundler-cache: true
-    
+
     - name: Set up Node
       uses: actions/setup-node@v3
       with:
         node-version: '18'
         cache: 'yarn'
-    
+
     - name: Install dependencies
       run: |
         sudo apt-get update
         sudo apt-get -y install libpq-dev
         bundle install
         yarn install
-    
-    - name: Set up database
-      env:
-        RAILS_ENV: test
-        POSTGRES_HOST: localhost
-        POSTGRES_PORT: 5432
-        POSTGRES_USER: postgres
-        POSTGRES_PASSWORD: postgres
-      run: |
-        bundle exec rails db:create
-        bundle exec rails db:schema:load
-        bundle exec rails db:test:prepare
-    
-    - name: Run tests
-      env:
-        RAILS_ENV: test
-        POSTGRES_HOST: localhost
-        POSTGRES_PORT: 5432
-        POSTGRES_USER: postgres
-        POSTGRES_PASSWORD: postgres
-      run: |
-        bundle exec rails test

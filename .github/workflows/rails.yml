@@ -11,7 +11,7 @@ permissions:
   pull-requests: read
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
 
     services:
@@ -19,8 +19,6 @@ jobs:
         image: postgres:14
         env:
           POSTGRES_PASSWORD: postgres
-          POSTGRES_USER: postgres
-          POSTGRES_DB: fmug_test
         ports: ['5432:5432']
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
@@ -38,13 +36,17 @@ jobs:
       with:
         node-version: '18'
 
-    - uses: actions/cache@v3
-      name: Cache node modules
+    - name: Get yarn cache directory path
+      id: yarn-cache-dir-path
+      run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+
+    - name: Cache yarn dependencies
+      uses: actions/cache@v3
       with:
-        path: node_modules
-        key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
+        path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
         restore-keys: |
-          ${{ runner.os }}-node-
+          ${{ runner.os }}-yarn-
 
     - name: Install dependencies
       run: |
@@ -53,15 +55,21 @@ jobs:
         bundle install
         yarn install --frozen-lockfile
 
-    - name: Setup and run tests
+    - name: Setup test database
       env:
         RAILS_ENV: test
-        POSTGRES_HOST: localhost
-        POSTGRES_USER: postgres
-        POSTGRES_PASSWORD: postgres
-        POSTGRES_DB: fmug_test
-        COVERAGE: true
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/fmug_test
       run: |
-        bundle exec rails db:test:prepare
-        PARALLEL_WORKERS=2 bundle exec rspec --format documentation
+        bin/rails db:create
+        bin/rails db:schema:load
+
+    - name: Compile assets
+      run: bin/rails assets:precompile
+
+    - name: Run tests
+      env:
+        RAILS_ENV: test
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/fmug_test
+      run: |
+        bundle exec rspec
         bundle exec rubocop

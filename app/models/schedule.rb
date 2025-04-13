@@ -1,6 +1,6 @@
 class Schedule < ApplicationRecord
   belongs_to :conference
-  
+
   validate :conference_must_be_current
 
   private

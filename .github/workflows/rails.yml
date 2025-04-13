@@ -54,6 +54,7 @@ jobs:
         sudo apt-get -y install libpq-dev
         bundle install
         yarn install --frozen-lockfile
+        bundle exec rspec --version || exit 1
 
     - name: Setup test database
       env:

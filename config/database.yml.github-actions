@@ -1,0 +1,22 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  username: <%= ENV['POSTGRES_USER'] %>
+  password: <%= ENV['POSTGRES_PASSWORD'] %>
+  host: <%= ENV['POSTGRES_HOST'] %>
+  port: <%= ENV['POSTGRES_PORT'] %>
+
+development:
+  <<: *default
+  database: fmug_development
+
+test:
+  <<: *default
+  database: fmug_test
+
+production:
+  <<: *default
+  database: fmug_production
+  username: fmug
+  password: <%= ENV["FMUG_DATABASE_PASSWORD"] %>

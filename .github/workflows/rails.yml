@@ -17,7 +17,9 @@ jobs:
       postgres:
         image: postgres:14
         env:
+          POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: fmug_test
         ports:
           - 5432:5432
         options: >-
@@ -28,12 +30,26 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: '3.2.0'
         bundler-cache: true
-
+    
+    - name: Set up Node
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'yarn'
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get -y install libpq-dev
+        bundle install
+        yarn install
+    
     - name: Set up database
       env:
         RAILS_ENV: test
@@ -41,10 +57,11 @@ jobs:
         POSTGRES_PORT: 5432
         POSTGRES_USER: postgres
         POSTGRES_PASSWORD: postgres
+        DATABASE_URL: "postgres://postgres:postgres@localhost:5432/fmug_test"
       run: |
-        bundle exec rails db:create
-        bundle exec rails db:schema:load
-
+        cp config/database.yml.github-actions config/database.yml
+        bundle exec rails db:test:prepare
+    
     - name: Run tests
       env:
         RAILS_ENV: test
@@ -52,4 +69,6 @@ jobs:
         POSTGRES_PORT: 5432
         POSTGRES_USER: postgres
         POSTGRES_PASSWORD: postgres
-      run: bundle exec rails test
+        DATABASE_URL: "postgres://postgres:postgres@localhost:5432/fmug_test"
+      run: |
+        bundle exec rails test

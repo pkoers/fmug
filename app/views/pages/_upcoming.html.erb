@@ -1,0 +1,24 @@
+
+<% if @conferences.any? %>
+  <ul>
+    <% @conferences.each do |c| %>
+      <li>
+        <div class="flex flex-row justify-center gap-8">
+          <div class="flex flex-col items-center p-6 border rounded-lg shadow-md w-1/3">
+            <h2 class="text-xl font-bold mb-3">Conference <%= c.edition %> <%= "(current)" if c.current %></h2>
+            <p class="text-gray-600">
+              <strong>When:</strong>
+              <%= c.start_date.strftime("%b %-d, %Y") %>
+              –
+              <%= c.end_date.strftime("%b %-d, %Y") %><br>
+              <strong>Host:</strong> <%= c.host %><br>
+              <strong>Location:</strong> <%= c.location %>
+            </p>
+          </div>
+        </div>
+      </li>
+    <% end %>
+  </ul>
+<% else %>
+  <p>No conferences have been created yet.</p>
+<% end %>

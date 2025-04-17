@@ -26,7 +26,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_04_17_203638) do
   end
 
   create_table "schedules", force: :cascade do |t|
-    t.integer "edition"
     t.bigint "conference_id", null: false
     t.time "time"
     t.integer "length"

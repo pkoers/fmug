@@ -11,6 +11,31 @@
     </div>
   <% end %>
 
+  <div>
+    <%= form.label :conference_id, style: "display: block" %>
+    <%= form.collection_select :conference_id, Conference.order(edition: :asc), :id, :edition %>
+  </div>
+
+  <div>
+    <%= form.label :time, style: "display: block" %>
+    <%= form.time_field :time %>
+  </div>
+
+  <div>
+    <%= form.label :length, "Length (minutes)", style: "display: block" %>
+    <%= form.number_field :length %>
+  </div>
+
+  <div>
+    <%= form.label :day, style: "display: block" %>
+    <%= form.number_field :day %>
+  </div>
+
+  <div>
+    <%= form.label :description, style: "display: block" %>
+    <%= form.text_area :description %>
+  </div>
+
   <div class="inline">
     <%= form.submit class: "w-full sm:w-auto rounded-md px-3.5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white inline-block font-medium cursor-pointer" %>
   </div>

@@ -1,2 +1,21 @@
 <div id="<%= dom_id schedule %>" class="w-full sm:w-auto my-5 space-y-5">
+  <div class="w-full">
+    <div class="flex flex-col">
+      <p>
+        <strong>Conference:</strong> <%= schedule.conference.edition %>
+      </p>
+      <p>
+        <strong>Time:</strong> <%= schedule.time.strftime("%H:%M") %>
+      </p>
+      <p>
+        <strong>Length:</strong> <%= schedule.length %> minutes
+      </p>
+      <p>
+        <strong>Day:</strong> <%= schedule.day %>
+      </p>
+      <p>
+        <strong>Description:</strong> <%= schedule.description %>
+      </p>
+    </div>
+  </div>
 </div>

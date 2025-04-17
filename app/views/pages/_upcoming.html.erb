@@ -1,7 +1,6 @@
-
-<% if @conferences.any? %>
+<% if @conferences.reject(&:current).any? %>
   <ul>
-    <% @conferences.each do |c| %>
+    <% @conferences.reject(&:current).each do |c| %>
       <sl-card class="card-image">
         <img
           slot="image"

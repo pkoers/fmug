@@ -3,7 +3,7 @@ class SchedulesController < ApplicationController
 
   # GET /schedules or /schedules.json
   def index
-    @schedules = Schedule.all
+    @schedules = Schedule.order(:day, :time)
   end
 
   # GET /schedules/1 or /schedules/1.json

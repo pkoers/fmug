@@ -1,1 +1,22 @@
 <% content_for :title, "Agenda" %>
+
+<div class="agenda">
+  <% @schedules.group_by(&:day).each do |day, schedules| %>
+    <div class="agenda__month">
+      <h2 class="agenda__month__title">Day <%= day %></h2>
+      <ul class="agenda__list">
+        <% schedules.each do |schedule| %>
+          <li class="agenda__item">
+            <article class="agenda__item__article">
+              <time class="agenda__item__date"><%= Time.at(schedule.time).strftime("%H:%M") %></time>
+              <div class="agenda__item__detail">
+                <div class="horaires"><%= schedule.length %> minutes</div>
+                <h3 class="agenda__item__title"><%= schedule.description %></h3>
+              </div>
+            </article>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+</div>

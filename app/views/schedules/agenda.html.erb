@@ -8,10 +8,10 @@
         <% schedules.each do |schedule| %>
           <li class="agenda__item">
             <article class="agenda__item__article">
-              <time class="agenda__item__date"><%= Time.at(schedule.time).strftime("%H:%M") %></time>
+              <time class="agenda__item__date">Time: <%= Time.at(schedule.time).strftime("%H:%M") %></time>
               <div class="agenda__item__detail">
-                <div class="horaires"><%= schedule.length %> minutes</div>
-                <h3 class="agenda__item__title"><%= schedule.description %></h3>
+                <div class="horaires">Duration: <%= schedule.length %> minutes</div>
+                <h3 class="agenda__item__title">Description: <%= schedule.description %></h3>
               </div>
             </article>
           </li>

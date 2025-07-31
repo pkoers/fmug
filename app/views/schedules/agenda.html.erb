@@ -1,22 +1,24 @@
 <% content_for :title, "Agenda" %>
 
-<div class="agenda">
-  <% @schedules.group_by(&:day).each do |day, schedules| %>
-    <div class="agenda__month">
-      <h2 class="agenda__month__title">Day <%= day %></h2>
-      <ul class="agenda__list">
+<% @schedules.group_by(&:day).each do |day, schedules| %>
+  <div class="schedule-container">
+    <div class="schedule-stage__wrapper">
+      <section class="schedule-stage">
+        <div class="schedule-stage__title">
+          <h3>Day <%= day %></h3>
+        </div>
         <% schedules.each do |schedule| %>
-          <li class="agenda__item">
-            <article class="agenda__item__article">
-              <time class="agenda__item__date">Time: <%= Time.at(schedule.time).strftime("%H:%M") %></time>
-              <div class="agenda__item__detail">
-                <div class="horaires">Duration: <%= schedule.length %> minutes</div>
-                <h3 class="agenda__item__title">Description: <%= schedule.description %></h3>
-              </div>
-            </article>
-          </li>
+        <div class="schedule-stage_guide-container">
+          <div class="guide-slot">
+            <p>Time: <%= Time.at(schedule.time).strftime("%H:%M") %> </p>
+            <div class="guide-slot_card">
+              <h4>Description: <%= schedule.description %></h4>
+            </div>
+          </div>
+        </div>
         <% end %>
-      </ul>
+        <hr class="divider" />
+      </section>
     </div>
-  <% end %>
-</div>
+  </div>
+<% end %>

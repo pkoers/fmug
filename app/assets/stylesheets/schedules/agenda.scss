@@ -20,6 +20,9 @@ body {
   font-size: 1.6rem;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: #000000;
+  color: #ffffff;
+  font-family: system-ui, sans-serif;
 }
 
 h1 {
@@ -28,12 +31,6 @@ h1 {
 
 h3 {
   font-size: 2.8rem;
-}
-
-body {
-  background: #000000;
-  color: #ffffff;
-  font-family: system-ui, sans-serif;
 }
 
 .heading {
@@ -60,7 +57,7 @@ body {
   display: grid;
   grid-auto-columns: max-content;
   grid-auto-flow: column;
-  grid-gap: 2rem;
+  gap: 2rem;
   padding-bottom: 5rem;
   padding-top: 2rem;
   min-width: 100vw;
@@ -79,15 +76,17 @@ body {
 }
 
 .schedule-stage:nth-child(1) > .schedule-stage__title > h3 {
-  background: red;
   background: linear-gradient(to right, #eb3349, #f45c43);
+  background-clip: text;
+  color: transparent;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .schedule-stage:nth-child(3) > .schedule-stage__title > h3 {
-  background: red;
   background: linear-gradient(to right, #1d976c, #93f9b9);
+  background-clip: text;
+  color: transparent;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -108,7 +107,7 @@ body {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 280px;
-  grid-gap: 2rem;
+  gap: 2rem;
 }
 
 .guide-slot {

@@ -40,6 +40,10 @@
     background-color: lightgray;
     color: white;
   }
+  sl-button.schedule-active::part(base) {
+    background-color: lightgreen;
+    color: #000;
+  }
 </style>
 
 <nav class="navbar">
@@ -58,9 +62,35 @@
 
   <%= render 'pages/current' %>
 
+  <div id="schedule-section" class="mt-10" style="display: none;">
+    <%= render template: "schedules/agenda" %>
+  </div>
+
   <div class="flex flex-row justify-center gap-8">
 
     <%= render 'pages/upcoming' %>
 
   </div>
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const scheduleButton = document.getElementById("schedule-button");
+    const scheduleSection = document.getElementById("schedule-section");
+
+    if (scheduleButton && scheduleSection && !scheduleButton.hasAttribute("disabled")) {
+      scheduleButton.addEventListener("click", () => {
+        const isHidden = scheduleSection.style.display === "none";
+
+        if (isHidden) {
+          scheduleSection.style.display = "block";
+          scheduleButton.classList.add("schedule-active");
+          scheduleSection.scrollIntoView({ behavior: "smooth" });
+        } else {
+          scheduleSection.style.display = "none";
+          scheduleButton.classList.remove("schedule-active");
+        }
+      });
+    }
+  });
+</script>

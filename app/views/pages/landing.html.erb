@@ -78,7 +78,7 @@
     const scheduleButton = document.getElementById("schedule-button");
     const scheduleSection = document.getElementById("schedule-section");
 
-    if (scheduleButton && scheduleSection) {
+    if (scheduleButton && scheduleSection && !scheduleButton.hasAttribute("disabled")) {
       scheduleButton.addEventListener("click", () => {
         const isHidden = scheduleSection.style.display === "none";
 

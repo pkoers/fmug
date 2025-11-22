@@ -15,4 +15,5 @@ Rails.application.routes.draw do
   # root "posts#index"
   root "pages#landing"
   get "about", to: "pages#about"
+  get "agenda", to: "schedules#agenda"
 end

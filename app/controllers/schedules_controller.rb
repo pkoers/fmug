@@ -6,6 +6,9 @@ class SchedulesController < ApplicationController
     @schedules = Schedule.order(:day, :time)
   end
 
+  def agenda
+    @schedules = Schedule.order(:day, :time)
+  end
   # GET /schedules/1 or /schedules/1.json
   def show
   end

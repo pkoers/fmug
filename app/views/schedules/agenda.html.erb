@@ -1,24 +1,31 @@
 <% content_for :title, "Agenda" %>
 
-<% @schedules.group_by(&:day).each do |day, schedules| %>
-  <div class="schedule-container">
-    <div class="schedule-stage__wrapper">
-      <section class="schedule-stage">
-        <div class="schedule-stage__title">
-          <h2>Day <%= day %></h2>
-        </div>
-        <% schedules.each do |schedule| %>
-        <div class="schedule-stage_guide-container">
-          <div class="guide-slot">
-            <p>Time: <%= Time.at(schedule.time).strftime("%H:%M") %> </p>
-            <div class="guide-slot_card">
-              <h4>Description: <%= schedule.description %></h4>
+<div class="agenda-page" style="display: flex; flex-direction: column; gap: 24px; width: 100%;">
+  <% grouped_schedules = @schedules.group_by(&:day) %>
+
+  <% grouped_schedules.each_with_index do |(day, schedules), idx| %>
+    <% if idx.positive? %>
+      <hr aria-hidden="true" style="border: 0; border-bottom: 1px solid #444; margin: 16px 0 8px; width: 100%; height: 0; display: block;" />
+    <% end %>
+    <div class="schedule-container">
+      <div class="schedule-stage__wrapper">
+        <section class="schedule-stage">
+          <div class="schedule-stage__title">
+            <h2>Day <%= day %></h2>
+          </div>
+          <% schedules.each do |schedule| %>
+          <div class="schedule-stage_guide-container">
+            <div class="guide-slot">
+              <p>Time: <%= Time.at(schedule.time).strftime("%H:%M") %> </p>
+              <div class="guide-slot_card">
+                <h4>Description: <%= schedule.description %></h4>
+              </div>
             </div>
           </div>
-        </div>
-        <% end %>
-        <hr class="divider" />
-      </section>
+          <% end %>
+          <hr class="divider" />
+        </section>
+      </div>
     </div>
-  </div>
-<% end %>
+  <% end %>
+</div>

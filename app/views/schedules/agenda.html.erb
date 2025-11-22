@@ -1,6 +1,6 @@
 <% content_for :title, "Agenda" %>
 
-<div class="agenda-page" style="display: flex; flex-direction: column; gap: 24px; width: 100%;">
+<div class="agenda-page">
   <% grouped_schedules = @schedules.group_by(&:day) %>
 
   <% grouped_schedules.each_with_index do |(day, schedules), idx| %>
@@ -18,7 +18,7 @@
             <div class="guide-slot">
               <p>Time: <%= Time.at(schedule.time).strftime("%H:%M") %> </p>
               <div class="guide-slot_card">
-                <h4>Description: <%= schedule.description %></h4>
+                <h4><%= schedule.description %></h4>
               </div>
             </div>
           </div>

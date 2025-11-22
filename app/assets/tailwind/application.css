@@ -50,6 +50,20 @@ h3 {
 
 .schedule-container {
   overflow: auto;
+  scrollbar-width: none; /* Hide scrollbar in Firefox while keeping scroll */
+}
+
+.schedule-container::-webkit-scrollbar {
+  display: none; /* Hide scrollbar in WebKit browsers */
+}
+
+.agenda-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 80vw;
+  margin-left: 10vw;
+  margin-right: 10vw;
 }
 
 .schedule-stage__wrapper {

@@ -1,7 +1,7 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    action_text-trix (2.1.15)
+    action_text-trix (2.1.16)
       railties
     actioncable (8.1.1)
       actionpack (= 8.1.1)
@@ -79,7 +79,11 @@ GEM
       public_suffix (>= 2.0.2, < 7.0)
     ast (2.4.3)
     base64 (0.3.0)
+<<<<<<< dependabot/bundler/action_text-trix-2.1.16
+    bcrypt_pbkdf (1.1.1)
+=======
     bcrypt_pbkdf (1.1.2)
+>>>>>>> main
     bigdecimal (4.0.1)
     bindex (0.8.1)
     bootsnap (1.19.0)
@@ -100,7 +104,11 @@ GEM
     connection_pool (3.0.2)
     crass (1.0.6)
     date (3.5.1)
+<<<<<<< dependabot/bundler/action_text-trix-2.1.16
+    debug (1.11.0)
+=======
     debug (1.11.1)
+>>>>>>> main
       irb (~> 1.10)
       reline (>= 0.3.8)
     diff-lcs (1.6.2)
@@ -130,8 +138,13 @@ GEM
     jbuilder (2.14.1)
       actionview (>= 7.0.0)
       activesupport (>= 7.0.0)
+<<<<<<< dependabot/bundler/action_text-trix-2.1.16
+    json (2.18.0)
+    kamal (2.8.2)
+=======
     json (2.18.1)
     kamal (2.10.1)
+>>>>>>> main
       activesupport (>= 7.0)
       base64 (~> 0.2)
       bcrypt_pbkdf (~> 1.0)
@@ -256,7 +269,11 @@ GEM
       zeitwerk (~> 2.6)
     rainbow (3.1.1)
     rake (13.3.1)
+<<<<<<< dependabot/bundler/action_text-trix-2.1.16
+    rdoc (7.0.3)
+=======
     rdoc (7.1.0)
+>>>>>>> main
       erb
       psych (>= 4.0.0)
       tsort

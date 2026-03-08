@@ -2,28 +2,44 @@
 
 <div class="w-full">
   <% if notice.present? %>
-    <p class="py-2 px-3 bg-green-50 mb-5 text-green-500 font-medium rounded-md inline-block" id="notice"><%= notice %></p>
+    <p class="mb-6 inline-block rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 font-medium text-emerald-700" id="notice"><%= notice %></p>
   <% end %>
 
-  <div class="flex justify-between items-center">
-    <h1 class="font-bold text-4xl">Schedules</h1>
-    <%= link_to "New schedule", new_schedule_path, class: "rounded-md px-3.5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white block font-medium" %>
-  </div>
+  <section class="rounded-[32px] bg-stone-50 p-6 shadow-sm ring-1 ring-stone-200 sm:p-8">
+    <div class="flex flex-col gap-4 border-b border-stone-200 pb-6 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <p class="text-lg font-semibold uppercase tracking-[0.24em] text-stone-500">Agenda</p>
+        <h1 class="mt-2 text-6xl font-semibold tracking-tight text-stone-900">Manage schedules</h1>
+        <p class="mt-3 max-w-2xl text-xl leading-9 text-stone-600">
+          Review each agenda item, adjust timing, and keep the published conference schedule tidy and readable.
+        </p>
+      </div>
+      <%= link_to "New schedule item", new_schedule_path, class: "inline-flex items-center justify-center rounded-xl bg-blue-600 px-6 py-4 text-lg font-semibold text-white transition hover:bg-blue-500" %>
+    </div>
 
-  <div id="schedules" class="min-w-full divide-y divide-gray-200 space-y-5">
-    <% if @schedules.any? %>
-      <% @schedules.each do |schedule| %>
-        <div class="flex flex-col sm:flex-row justify-between items-center pb-5 sm:pb-0">
-          <%= render schedule %>
-          <div class="w-full sm:w-auto flex flex-col sm:flex-row space-x-2 space-y-2">
-            <%= link_to "Show", schedule, class: "w-full sm:w-auto text-center rounded-md px-3.5 py-2.5 bg-gray-100 hover:bg-gray-50 inline-block font-medium" %>
-            <%= link_to "Edit", edit_schedule_path(schedule), class: "w-full sm:w-auto text-center rounded-md px-3.5 py-2.5 bg-gray-100 hover:bg-gray-50 inline-block font-medium" %>
-            <%= button_to "Destroy", schedule, method: :delete, class: "w-full sm:w-auto rounded-md px-3.5 py-2.5 text-white bg-red-600 hover:bg-red-500 font-medium cursor-pointer", data: { turbo_confirm: "Are you sure?" } %>
-          </div>
+    <div id="schedules" class="mt-6 space-y-4">
+      <% if @schedules.any? %>
+        <% @schedules.each do |schedule| %>
+          <article class="rounded-[28px] border border-stone-200 bg-white p-5 shadow-sm sm:p-6">
+            <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+              <%= render schedule %>
+              <div class="flex w-full flex-col gap-3 lg:w-auto lg:min-w-44">
+                <%= link_to "Show", schedule, class: "inline-flex items-center justify-center rounded-xl border border-stone-300 px-5 py-4 text-lg font-medium text-stone-700 transition hover:bg-stone-100" %>
+                <%= link_to "Edit", edit_schedule_path(schedule), class: "inline-flex items-center justify-center rounded-xl border border-stone-300 px-5 py-4 text-lg font-medium text-stone-700 transition hover:bg-stone-100" %>
+                <%= button_to "Delete", schedule, method: :delete, class: "inline-flex w-full items-center justify-center rounded-xl bg-red-600 px-5 py-4 text-lg font-semibold text-white transition hover:bg-red-500", data: { turbo_confirm: "Delete this schedule item?" } %>
+              </div>
+            </div>
+          </article>
+        <% end %>
+      <% else %>
+        <div class="rounded-[28px] border border-dashed border-stone-300 bg-white px-6 py-16 text-center">
+          <h2 class="text-4xl font-semibold text-stone-900">No schedule items yet</h2>
+          <p class="mx-auto mt-3 max-w-xl text-xl leading-9 text-stone-600">
+            Start by creating the first agenda block for your conference, such as an opening session, workshop, lunch break, or closing remarks.
+          </p>
+          <%= link_to "Create the first schedule item", new_schedule_path, class: "mt-6 inline-flex items-center justify-center rounded-xl bg-blue-600 px-6 py-4 text-lg font-semibold text-white transition hover:bg-blue-500" %>
         </div>
       <% end %>
-    <% else %>
-      <p class="text-center my-10">No schedules found.</p>
-    <% end %>
-  </div>
+    </div>
+  </section>
 </div>

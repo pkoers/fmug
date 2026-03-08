@@ -103,22 +103,6 @@ h3 {
   margin: 3rem 0;
 }
 
-.schedule-stage:nth-child(1) > .schedule-stage__title > h3 {
-  background: linear-gradient(to right, #eb3349, #f45c43);
-  background-clip: text;
-  color: transparent;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.schedule-stage:nth-child(3) > .schedule-stage__title > h3 {
-  background: linear-gradient(to right, #1d976c, #93f9b9);
-  background-clip: text;
-  color: transparent;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
 .schedule-stage__title {
   position: sticky;
   left: 0;
@@ -126,10 +110,12 @@ h3 {
   height: 100%;
   padding-left: var(--padding);
   margin-top: 1.6rem;
-  background: linear-gradient(to right, #000000 30%, hsla(0, 0%, 0%, 0));
-  & > h3 {
-    font-weight: 900;
-  }
+  background: transparent;
+}
+
+.schedule-stage__title > h3 {
+  font-weight: 900;
+  color: #1c1917;
 }
 
 .schedule-stage_guide-container {

@@ -137,22 +137,23 @@ h3 {
 }
 
 .guide-slot_card {
-  background: hsl(0, 0%, 4%);
-  border: 1px solid var(--border);
+  background: #ffffff;
+  border: 1px solid #d6d3d1;
   border-radius: 0.8rem;
   font-size: 1.4rem;
   margin-bottom: 2rem;
   padding: 1.6rem;
   cursor: pointer;
+  box-shadow: 0 10px 24px rgba(28, 25, 23, 0.08);
 
   &:hover {
-    border-color: hsl(0, 0%, 70%);
+    border-color: #a8a29e;
   }
 
   & > h4 {
     margin-right: 5rem;
     font-size: 1.4rem;
-    color: #ffffff;
+    color: #1c1917;
   }
 }
 

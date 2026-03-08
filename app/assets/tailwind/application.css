@@ -23,8 +23,8 @@ body {
   font-size: 1.6rem;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #000000;
-  color: #ffffff;
+  background: #f5f5f4;
+  color: #1c1917;
   font-family: system-ui, sans-serif;
 }
 
@@ -43,9 +43,10 @@ h3 {
 
 .section-container {
   padding: var(--padding);
-  a {
-    color: #ffffff;
-  }
+}
+
+.section-container a {
+  color: inherit;
 }
 
 .schedule-container {

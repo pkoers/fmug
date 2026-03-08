@@ -32,7 +32,7 @@
     font-size: 1.5rem;
   }
 
-  sl-button.schedule-active::part(base) {
+  sl-button.is-active::part(base) {
     background-color: lightgreen;
     color: #000;
   }
@@ -73,8 +73,19 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
+    const registerButton = document.getElementById("register-button");
+    const registerSection = document.getElementById("register-section");
     const scheduleButton = document.getElementById("schedule-button");
     const scheduleSection = document.getElementById("schedule-section");
+
+    if (registerButton && registerSection) {
+      registerButton.addEventListener("click", () => {
+        const isHidden = registerSection.classList.contains("hidden");
+
+        registerSection.classList.toggle("hidden", !isHidden);
+        registerButton.classList.toggle("is-active", isHidden);
+      });
+    }
 
     if (scheduleButton && scheduleSection && !scheduleButton.hasAttribute("disabled")) {
       scheduleButton.addEventListener("click", () => {
@@ -82,11 +93,11 @@
 
         if (isHidden) {
           scheduleSection.style.display = "block";
-          scheduleButton.classList.add("schedule-active");
+          scheduleButton.classList.add("is-active");
           scheduleSection.scrollIntoView({ behavior: "smooth" });
         } else {
           scheduleSection.style.display = "none";
-          scheduleButton.classList.remove("schedule-active");
+          scheduleButton.classList.remove("is-active");
         }
       });
     }

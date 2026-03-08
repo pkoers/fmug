@@ -1,6 +1,9 @@
 Rails.application.routes.draw do
   resources :schedules
   resources :conferences
+  match "/auth/:provider/callback", to: "sessions#create", via: [ :get, :post ]
+  match "/auth/failure", to: "sessions#failure", via: [ :get, :post ]
+  delete "/logout", to: "sessions#destroy", as: :logout
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

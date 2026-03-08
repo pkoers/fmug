@@ -106,10 +106,14 @@ h3 {
 .schedule-stage__title {
   position: sticky;
   left: 0;
+  top: 0;
+  align-self: start;
+  z-index: 2;
   padding-right: 5rem;
-  height: 100%;
+  height: fit-content;
   padding-left: var(--padding);
-  margin-top: 1.6rem;
+  margin-top: 0;
+  transform: translateY(-2.8rem);
   background: transparent;
 }
 

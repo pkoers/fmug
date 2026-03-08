@@ -1,33 +1,34 @@
-<div id="<%= dom_id conference %>" class="w-full sm:w-auto my-5 space-y-5">
-  <div class="my-5">
-    <div class="mb-4">
-      <strong class="block font-medium mb-1">Edition:</strong>
-      <%= conference.edition %>
+<div id="<%= dom_id conference %>" class="w-full">
+  <div class="flex flex-col gap-4">
+    <div class="flex flex-wrap items-center gap-3">
+      <span class="inline-flex rounded-full bg-blue-100 px-4 py-2 text-base font-semibold uppercase tracking-[0.2em] text-blue-800">
+        Conference <%= conference.edition %>
+      </span>
+      <% if conference.current? %>
+        <span class="inline-flex rounded-full bg-emerald-100 px-4 py-2 text-base font-medium text-emerald-800">
+          Current conference
+        </span>
+      <% end %>
     </div>
 
-    <div class="mb-4">
-      <strong class="block font-medium mb-1">Start date:</strong>
-      <%= conference.start_date %>
+    <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <div class="rounded-2xl bg-stone-100 px-4 py-3">
+        <p class="text-base font-semibold uppercase tracking-[0.16em] text-stone-500">Start date</p>
+        <p class="mt-1 text-xl font-medium text-stone-900"><%= conference.start_date&.strftime("%b %-d, %Y") %></p>
+      </div>
+      <div class="rounded-2xl bg-stone-100 px-4 py-3">
+        <p class="text-base font-semibold uppercase tracking-[0.16em] text-stone-500">End date</p>
+        <p class="mt-1 text-xl font-medium text-stone-900"><%= conference.end_date&.strftime("%b %-d, %Y") %></p>
+      </div>
+      <div class="rounded-2xl bg-stone-100 px-4 py-3">
+        <p class="text-base font-semibold uppercase tracking-[0.16em] text-stone-500">Host</p>
+        <p class="mt-1 text-xl font-medium text-stone-900"><%= conference.host.presence || "TBD" %></p>
+      </div>
     </div>
 
-    <div class="mb-4">
-      <strong class="block font-medium mb-1">End date:</strong>
-      <%= conference.end_date %>
-    </div>
-
-    <div class="mb-4">
-      <strong class="block font-medium mb-1">Host:</strong>
-      <%= conference.host %>
-    </div>
-
-    <div class="mb-4">
-      <strong class="block font-medium mb-1">Location:</strong>
-      <%= conference.location %>
-    </div>
-
-    <div class="mb-4">
-      <strong class="block font-medium mb-1">Current:</strong>
-      <%= conference.current %>
+    <div class="rounded-2xl bg-stone-100 px-5 py-4">
+      <p class="text-base font-semibold uppercase tracking-[0.16em] text-stone-500">Location</p>
+      <p class="mt-2 text-2xl font-medium text-stone-900"><%= conference.location.presence || "Location not set" %></p>
     </div>
   </div>
 </div>

@@ -1,6 +1,37 @@
 <% content_for :title, "FMUG Conferences" %>
 
 <style>
+  .landing-auth {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .landing-auth__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    border: 1px solid #d6d3d1;
+    background: #ffffff;
+    color: #1c1917;
+    padding: 12px 18px;
+    font-size: 1.6rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .landing-auth__button:hover {
+    background: #f5f5f4;
+  }
+
+  .landing-auth__meta {
+    color: #57534e;
+    font-size: 1.5rem;
+  }
+
   sl-button.schedule-active::part(base) {
     background-color: lightgreen;
     color: #000;
@@ -8,6 +39,17 @@
 </style>
 
 <div class="flex w-full flex-col space-y-8">
+  <div class="landing-auth">
+    <% if logged_in? %>
+      <span class="landing-auth__meta">Signed in as <%= current_user.email %></span>
+      <%= button_to "Logout", logout_path, method: :delete, class: "landing-auth__button" %>
+    <% elsif google_oauth_configured? %>
+      <%= button_to "Login with Google", "/auth/google_oauth2", method: :post, class: "landing-auth__button" %>
+    <% else %>
+      <span class="landing-auth__meta">Google login is not configured yet.</span>
+    <% end %>
+  </div>
+
   <div class="flex w-full justify-center">
     <%= image_tag "fmug-400dpiLogo.jpeg", alt: "FMUG Logo", class: "mx-auto block h-auto max-h-[440px] w-auto max-w-full object-contain" %>
   </div>

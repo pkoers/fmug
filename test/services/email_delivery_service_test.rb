@@ -57,6 +57,6 @@ class EmailDeliveryServiceTest < ActiveSupport::TestCase
       )
     end
 
-    assert_equal 'Unsupported delivery mode: :invalid', error.message
+    assert_equal "Unsupported delivery mode: :invalid", error.message
   end
 end

@@ -41,7 +41,7 @@
 <div class="flex w-full flex-col space-y-8">
   <div class="landing-auth">
     <% if logged_in? %>
-      <span class="landing-auth__meta">Signed in as <%= current_user.email %></span>
+      <span class="landing-auth__meta">Signed in as <%= current_user.email %><%= " (Admin)" if current_user.admin? %></span>
       <%= button_to "Logout", logout_path, method: :delete, class: "landing-auth__button" %>
     <% elsif google_oauth_configured? %>
       <%= button_to "Login with Google", "/auth/google_oauth2", method: :post, class: "landing-auth__button" %>

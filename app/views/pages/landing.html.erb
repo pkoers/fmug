@@ -32,6 +32,66 @@
     font-size: 1.5rem;
   }
 
+  .invite-modal[hidden] {
+    display: none;
+  }
+
+  .invite-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(28, 25, 23, 0.45);
+    padding: 24px;
+  }
+
+  .invite-modal__panel {
+    width: min(100%, 480px);
+    border-radius: 24px;
+    background: #ffffff;
+    padding: 28px;
+    box-shadow: 0 24px 60px rgba(28, 25, 23, 0.18);
+  }
+
+  .invite-modal__title {
+    font-size: 2.4rem;
+    font-weight: 600;
+    color: #1c1917;
+  }
+
+  .invite-modal__copy {
+    margin-top: 8px;
+    font-size: 1.5rem;
+    color: #57534e;
+  }
+
+  .invite-modal__field {
+    display: block;
+    margin-top: 18px;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #44403c;
+  }
+
+  .invite-modal__input {
+    margin-top: 8px;
+    width: 100%;
+    border: 1px solid #d6d3d1;
+    border-radius: 14px;
+    padding: 12px 14px;
+    font-size: 1.6rem;
+    color: #1c1917;
+  }
+
+  .invite-modal__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+  }
+
   sl-button.is-active::part(base) {
     background-color: lightgreen;
     color: #000;
@@ -71,12 +131,59 @@
   </div>
 </div>
 
+<div id="invite-modal" class="invite-modal" hidden>
+  <div class="invite-modal__panel" role="dialog" aria-modal="true" aria-labelledby="invite-modal-title">
+    <h2 id="invite-modal-title" class="invite-modal__title">Invite attendee</h2>
+    <p class="invite-modal__copy">Enter the email address and first name for the invitation.</p>
+
+    <label class="invite-modal__field" for="invite-first-name-input">
+      First name
+      <input id="invite-first-name-input" class="invite-modal__input" type="text" autocomplete="given-name" />
+    </label>
+
+    <label class="invite-modal__field" for="invite-email-input">
+      Email address
+      <input id="invite-email-input" class="invite-modal__input" type="email" autocomplete="email" />
+    </label>
+
+    <div class="invite-modal__actions">
+      <button type="button" id="invite-modal-cancel" class="landing-auth__button">Cancel</button>
+      <button type="button" id="invite-modal-save" class="landing-auth__button">Continue</button>
+    </div>
+  </div>
+</div>
+
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const registerButton = document.getElementById("register-button");
     const registerSection = document.getElementById("register-section");
+    const registerSelfOption = document.getElementById("register-self-option");
+    const inviteOtherOption = document.getElementById("invite-other-option");
+    const registrationNextButton = document.getElementById("registration-next-button");
     const scheduleButton = document.getElementById("schedule-button");
     const scheduleSection = document.getElementById("schedule-section");
+    const inviteModal = document.getElementById("invite-modal");
+    const inviteEmailInput = document.getElementById("invite-email-input");
+    const inviteFirstNameInput = document.getElementById("invite-first-name-input");
+    const inviteModalCancel = document.getElementById("invite-modal-cancel");
+    const inviteModalSave = document.getElementById("invite-modal-save");
+
+    const closeInviteModal = () => {
+      if (!inviteModal) {
+        return;
+      }
+
+      inviteModal.hidden = true;
+    };
+
+    const openInviteModal = () => {
+      if (!inviteModal) {
+        return;
+      }
+
+      inviteModal.hidden = false;
+      inviteEmailInput?.focus();
+    };
 
     if (registerButton && registerSection) {
       registerButton.addEventListener("click", () => {
@@ -101,5 +208,24 @@
         }
       });
     }
+
+    if (registrationNextButton && inviteOtherOption) {
+      registrationNextButton.addEventListener("click", () => {
+        if (!inviteOtherOption.checked) {
+          return;
+        }
+
+        openInviteModal();
+      });
+    }
+
+    inviteModalCancel?.addEventListener("click", closeInviteModal);
+    inviteModalSave?.addEventListener("click", closeInviteModal);
+
+    inviteModal?.addEventListener("click", (event) => {
+      if (event.target === inviteModal) {
+        closeInviteModal();
+      }
+    });
   });
 </script>

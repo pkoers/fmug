@@ -264,10 +264,6 @@ end %>
   <div class="invite-modal__panel" role="dialog" aria-modal="true" aria-labelledby="invite-modal-title">
     <h2 id="invite-modal-title" class="invite-modal__title">Invite attendee</h2>
     <p class="invite-modal__copy">Enter the first name and email address for the invitation.</p>
-<div id="invite-modal" class="invite-modal" hidden>
-  <div class="invite-modal__panel" role="dialog" aria-modal="true" aria-labelledby="invite-modal-title">
-    <h2 id="invite-modal-title" class="invite-modal__title">Invite attendee</h2>
-    <p class="invite-modal__copy">Enter the email address and first name for the invitation.</p>
 
     <label class="invite-modal__field" for="invite-first-name-input">
       First name
@@ -468,15 +464,6 @@ ${signedInUserName}`;
         selfRegistrationError.hidden = false;
       }
     });
-    if (registrationNextButton && inviteOtherOption) {
-      registrationNextButton.addEventListener("click", () => {
-        if (!inviteOtherOption.checked) {
-          return;
-        }
-
-        openInviteModal();
-      });
-    }
 
     inviteModalCancel?.addEventListener("click", closeInviteModal);
     inviteModalSave?.addEventListener("click", () => {
@@ -495,11 +482,6 @@ ${signedInUserName}`;
         inviteModalError.hidden = true;
       }
 
-        inviteModalError.hidden = false;
-        return;
-      }
-
-      inviteModalError.hidden = true;
       closeInviteModal();
       openInvitePreviewModal(invitedFirstName);
     });

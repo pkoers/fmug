@@ -1,5 +1,5 @@
 <% content_for :title, "FMUG Conferences" %>
-<% current_conference = Conference.find_by(current: true) %>
+<% current_conference = @current_conference %>
 <% conference_title = if current_conference.present?
   "Conference #{current_conference.edition} | #{current_conference.start_date.strftime("%b %-d, %Y")} - #{current_conference.end_date.strftime("%b %-d, %Y")}"
 end %>
@@ -93,6 +93,15 @@ end %>
     color: #b91c1c;
   }
 
+  .registration-modal__status {
+    margin-top: 18px;
+    border-radius: 18px;
+    background: #f5f5f4;
+    padding: 16px 18px;
+    font-size: 1.5rem;
+    color: #44403c;
+  }
+
   sl-button.is-active::part(base) {
     background-color: lightgreen;
     color: #000;
@@ -135,29 +144,48 @@ end %>
 <div id="self-registration-modal" class="registration-modal" hidden>
   <div class="registration-modal__panel" role="dialog" aria-modal="true" aria-labelledby="self-registration-title">
     <h2 id="self-registration-title" class="registration-modal__title"><%= conference_title %></h2>
-    <p class="registration-modal__copy">How would you like to attend this conference?</p>
+    <div id="self-registration-create-panel">
+      <p class="registration-modal__copy">How would you like to attend this conference?</p>
 
-    <label class="registration-modal__choice" for="attendance-physical-option">
-      <input type="radio" name="attendance_mode" id="attendance-physical-option" class="h-6 w-6 border-stone-300 text-blue-600 focus:ring-blue-500" />
-      <span>Attend physically</span>
-    </label>
+      <%= form_with scope: :registration, url: registration_path, method: :post, local: true, id: "self-registration-form" do |form| %>
+        <label class="registration-modal__choice" for="attendance-physical-option">
+          <input type="radio" name="attendance_mode_choice" id="attendance-physical-option" class="h-6 w-6 border-stone-300 text-blue-600 focus:ring-blue-500" />
+          <span>Attend physically</span>
+        </label>
 
-    <label class="registration-modal__choice" for="attendance-online-option">
-      <input type="radio" name="attendance_mode" id="attendance-online-option" class="h-6 w-6 border-stone-300 text-blue-600 focus:ring-blue-500" />
-      <span>Attend online</span>
-    </label>
+        <label class="registration-modal__choice" for="attendance-online-option">
+          <input type="radio" name="attendance_mode_choice" id="attendance-online-option" class="h-6 w-6 border-stone-300 text-blue-600 focus:ring-blue-500" />
+          <span>Attend online</span>
+        </label>
 
-    <p id="self-registration-error" class="registration-modal__error" hidden>Please choose either physical or online attendance to continue.</p>
+        <%= form.hidden_field :attendance_mode, id: "attendance-mode-value" %>
 
-    <div class="registration-modal__actions">
-      <button type="button" id="self-registration-cancel" class="landing-auth__button">Cancel</button>
-      <button type="button" id="self-registration-continue" class="landing-auth__button">Continue</button>
+        <p id="self-registration-error" class="registration-modal__error" hidden>Please choose either physical or online attendance to continue.</p>
+
+        <div class="registration-modal__actions">
+          <button type="button" id="self-registration-cancel" class="landing-auth__button">Cancel</button>
+          <button type="submit" id="self-registration-continue" class="landing-auth__button">Continue</button>
+        </div>
+      <% end %>
+    </div>
+
+    <div id="self-registration-remove-panel" hidden>
+      <p class="registration-modal__copy">You are already registered for this conference.</p>
+      <div class="registration-modal__status">
+        Current attendance: <strong><%= @current_registration&.attending_physically? ? "Physical" : "Online" %></strong>
+      </div>
+
+      <div class="registration-modal__actions">
+        <button type="button" id="self-registration-remove-cancel" class="landing-auth__button">Keep registration</button>
+        <%= button_to "Remove registration", registration_path, method: :delete, class: "landing-auth__button" %>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
+    const alreadyRegistered = <%= @current_registration.present? ? "true" : "false" %>;
     const registerButton = document.getElementById("register-button");
     const registerSection = document.getElementById("register-section");
     const registerSelfOption = document.getElementById("register-self-option");
@@ -167,10 +195,15 @@ end %>
     const scheduleSection = document.getElementById("schedule-section");
     const selfRegistrationModal = document.getElementById("self-registration-modal");
     const selfRegistrationCancel = document.getElementById("self-registration-cancel");
+    const selfRegistrationRemoveCancel = document.getElementById("self-registration-remove-cancel");
     const selfRegistrationContinue = document.getElementById("self-registration-continue");
     const selfRegistrationError = document.getElementById("self-registration-error");
     const attendancePhysicalOption = document.getElementById("attendance-physical-option");
     const attendanceOnlineOption = document.getElementById("attendance-online-option");
+    const attendanceModeValue = document.getElementById("attendance-mode-value");
+    const selfRegistrationCreatePanel = document.getElementById("self-registration-create-panel");
+    const selfRegistrationRemovePanel = document.getElementById("self-registration-remove-panel");
+    const selfRegistrationForm = document.getElementById("self-registration-form");
 
     const closeSelfRegistrationModal = () => {
       if (!selfRegistrationModal) {
@@ -187,6 +220,11 @@ end %>
 
       if (selfRegistrationError) {
         selfRegistrationError.hidden = true;
+      }
+
+      if (selfRegistrationCreatePanel && selfRegistrationRemovePanel) {
+        selfRegistrationCreatePanel.hidden = alreadyRegistered;
+        selfRegistrationRemovePanel.hidden = !alreadyRegistered;
       }
 
       selfRegistrationModal.hidden = false;
@@ -230,15 +268,25 @@ end %>
     }
 
     selfRegistrationCancel?.addEventListener("click", closeSelfRegistrationModal);
-    selfRegistrationContinue?.addEventListener("click", () => {
-      if (attendancePhysicalOption?.checked || attendanceOnlineOption?.checked) {
-        if (selfRegistrationError) {
-          selfRegistrationError.hidden = true;
+    selfRegistrationRemoveCancel?.addEventListener("click", closeSelfRegistrationModal);
+    selfRegistrationForm?.addEventListener("submit", (event) => {
+      if (attendancePhysicalOption?.checked) {
+        if (attendanceModeValue) {
+          attendanceModeValue.value = "physical";
         }
 
-        closeSelfRegistrationModal();
         return;
       }
+
+      if (attendanceOnlineOption?.checked) {
+        if (attendanceModeValue) {
+          attendanceModeValue.value = "online";
+        }
+
+        return;
+      }
+
+      event.preventDefault();
 
       if (selfRegistrationError) {
         selfRegistrationError.hidden = false;

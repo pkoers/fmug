@@ -1,4 +1,8 @@
 <% content_for :title, "FMUG Conferences" %>
+<% current_conference = Conference.find_by(current: true) %>
+<% conference_title = if current_conference.present?
+  "Conference #{current_conference.edition} | #{current_conference.start_date.strftime("%b %-d, %Y")} - #{current_conference.end_date.strftime("%b %-d, %Y")}"
+end %>
 
 <style>
   .landing-auth {
@@ -30,6 +34,63 @@
   .landing-auth__meta {
     color: #57534e;
     font-size: 1.5rem;
+  }
+
+  .registration-modal[hidden] {
+    display: none;
+  }
+
+  .registration-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(28, 25, 23, 0.45);
+    padding: 24px;
+  }
+
+  .registration-modal__panel {
+    width: min(100%, 520px);
+    border-radius: 24px;
+    background: #ffffff;
+    padding: 28px;
+    box-shadow: 0 24px 60px rgba(28, 25, 23, 0.18);
+  }
+
+  .registration-modal__title {
+    font-size: 2.2rem;
+    font-weight: 600;
+    color: #1c1917;
+  }
+
+  .registration-modal__copy {
+    margin-top: 10px;
+    font-size: 1.5rem;
+    color: #57534e;
+  }
+
+  .registration-modal__choice {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 20px;
+    font-size: 1.8rem;
+    color: #44403c;
+  }
+
+  .registration-modal__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 26px;
+  }
+
+  .registration-modal__error {
+    margin-top: 16px;
+    font-size: 1.4rem;
+    color: #b91c1c;
   }
 
   sl-button.is-active::part(base) {
@@ -71,12 +132,65 @@
   </div>
 </div>
 
+<div id="self-registration-modal" class="registration-modal" hidden>
+  <div class="registration-modal__panel" role="dialog" aria-modal="true" aria-labelledby="self-registration-title">
+    <h2 id="self-registration-title" class="registration-modal__title"><%= conference_title %></h2>
+    <p class="registration-modal__copy">How would you like to attend this conference?</p>
+
+    <label class="registration-modal__choice" for="attendance-physical-option">
+      <input type="radio" name="attendance_mode" id="attendance-physical-option" class="h-6 w-6 border-stone-300 text-blue-600 focus:ring-blue-500" />
+      <span>Attend physically</span>
+    </label>
+
+    <label class="registration-modal__choice" for="attendance-online-option">
+      <input type="radio" name="attendance_mode" id="attendance-online-option" class="h-6 w-6 border-stone-300 text-blue-600 focus:ring-blue-500" />
+      <span>Attend online</span>
+    </label>
+
+    <p id="self-registration-error" class="registration-modal__error" hidden>Please choose either physical or online attendance to continue.</p>
+
+    <div class="registration-modal__actions">
+      <button type="button" id="self-registration-cancel" class="landing-auth__button">Cancel</button>
+      <button type="button" id="self-registration-continue" class="landing-auth__button">Continue</button>
+    </div>
+  </div>
+</div>
+
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const registerButton = document.getElementById("register-button");
     const registerSection = document.getElementById("register-section");
+    const registerSelfOption = document.getElementById("register-self-option");
+    const inviteOtherOption = document.getElementById("invite-other-option");
+    const registrationNextButton = document.getElementById("registration-next-button");
     const scheduleButton = document.getElementById("schedule-button");
     const scheduleSection = document.getElementById("schedule-section");
+    const selfRegistrationModal = document.getElementById("self-registration-modal");
+    const selfRegistrationCancel = document.getElementById("self-registration-cancel");
+    const selfRegistrationContinue = document.getElementById("self-registration-continue");
+    const selfRegistrationError = document.getElementById("self-registration-error");
+    const attendancePhysicalOption = document.getElementById("attendance-physical-option");
+    const attendanceOnlineOption = document.getElementById("attendance-online-option");
+
+    const closeSelfRegistrationModal = () => {
+      if (!selfRegistrationModal) {
+        return;
+      }
+
+      selfRegistrationModal.hidden = true;
+    };
+
+    const openSelfRegistrationModal = () => {
+      if (!selfRegistrationModal) {
+        return;
+      }
+
+      if (selfRegistrationError) {
+        selfRegistrationError.hidden = true;
+      }
+
+      selfRegistrationModal.hidden = false;
+    };
 
     if (registerButton && registerSection) {
       registerButton.addEventListener("click", () => {
@@ -101,5 +215,40 @@
         }
       });
     }
+
+    if (registrationNextButton && registerSelfOption) {
+      registrationNextButton.addEventListener("click", () => {
+        if (registerSelfOption.checked) {
+          openSelfRegistrationModal();
+          return;
+        }
+
+        if (inviteOtherOption?.checked) {
+          return;
+        }
+      });
+    }
+
+    selfRegistrationCancel?.addEventListener("click", closeSelfRegistrationModal);
+    selfRegistrationContinue?.addEventListener("click", () => {
+      if (attendancePhysicalOption?.checked || attendanceOnlineOption?.checked) {
+        if (selfRegistrationError) {
+          selfRegistrationError.hidden = true;
+        }
+
+        closeSelfRegistrationModal();
+        return;
+      }
+
+      if (selfRegistrationError) {
+        selfRegistrationError.hidden = false;
+      }
+    });
+
+    selfRegistrationModal?.addEventListener("click", (event) => {
+      if (event.target === selfRegistrationModal) {
+        closeSelfRegistrationModal();
+      }
+    });
   });
 </script>

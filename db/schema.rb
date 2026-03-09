@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_09_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_09_133000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -45,6 +45,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_09_120000) do
     t.index ["user_id"], name: "index_identities_on_user_id"
   end
 
+  create_table "registrations", force: :cascade do |t|
+    t.boolean "attending_physically", null: false
+    t.bigint "conference_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["conference_id"], name: "index_registrations_on_conference_id"
+    t.index ["user_id", "conference_id"], name: "index_registrations_on_user_id_and_conference_id", unique: true
+    t.index ["user_id"], name: "index_registrations_on_user_id"
+  end
+
   create_table "schedules", force: :cascade do |t|
     t.bigint "conference_id", null: false
     t.datetime "created_at", null: false
@@ -70,6 +81,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_09_120000) do
   end
 
   add_foreign_key "identities", "users"
+  add_foreign_key "registrations", "conferences"
+  add_foreign_key "registrations", "users"
   add_foreign_key "schedules", "conferences"
   add_foreign_key "users", "companies"
 end

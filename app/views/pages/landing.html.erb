@@ -1,4 +1,8 @@
 <% content_for :title, "FMUG Conferences" %>
+<% current_conference = @current_conference %>
+<% conference_title = if current_conference.present?
+  "Conference #{current_conference.edition} | #{current_conference.start_date.strftime("%b %-d, %Y")} - #{current_conference.end_date.strftime("%b %-d, %Y")}"
+end %>
 
 <style>
   .landing-auth {
@@ -30,6 +34,72 @@
   .landing-auth__meta {
     color: #57534e;
     font-size: 1.5rem;
+  }
+
+  .registration-modal[hidden] {
+    display: none;
+  }
+
+  .registration-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(28, 25, 23, 0.45);
+    padding: 24px;
+  }
+
+  .registration-modal__panel {
+    width: min(100%, 520px);
+    border-radius: 24px;
+    background: #ffffff;
+    padding: 28px;
+    box-shadow: 0 24px 60px rgba(28, 25, 23, 0.18);
+  }
+
+  .registration-modal__title {
+    font-size: 2.2rem;
+    font-weight: 600;
+    color: #1c1917;
+  }
+
+  .registration-modal__copy {
+    margin-top: 10px;
+    font-size: 1.5rem;
+    color: #57534e;
+  }
+
+  .registration-modal__choice {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 20px;
+    font-size: 1.8rem;
+    color: #44403c;
+  }
+
+  .registration-modal__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 26px;
+  }
+
+  .registration-modal__error {
+    margin-top: 16px;
+    font-size: 1.4rem;
+    color: #b91c1c;
+  }
+
+  .registration-modal__status {
+    margin-top: 18px;
+    border-radius: 18px;
+    background: #f5f5f4;
+    padding: 16px 18px;
+    font-size: 1.5rem;
+    color: #44403c;
   }
 
   .invite-modal[hidden] {
@@ -148,6 +218,52 @@
   </div>
 </div>
 
+<div id="self-registration-modal" class="registration-modal" hidden>
+  <div class="registration-modal__panel" role="dialog" aria-modal="true" aria-labelledby="self-registration-title">
+    <h2 id="self-registration-title" class="registration-modal__title"><%= conference_title %></h2>
+    <div id="self-registration-create-panel">
+      <p class="registration-modal__copy">How would you like to attend this conference?</p>
+
+      <%= form_with scope: :registration, url: registration_path, method: :post, local: true, id: "self-registration-form" do |form| %>
+        <label class="registration-modal__choice" for="attendance-physical-option">
+          <input type="radio" name="attendance_mode_choice" id="attendance-physical-option" class="h-6 w-6 border-stone-300 text-blue-600 focus:ring-blue-500" />
+          <span>Attend physically</span>
+        </label>
+
+        <label class="registration-modal__choice" for="attendance-online-option">
+          <input type="radio" name="attendance_mode_choice" id="attendance-online-option" class="h-6 w-6 border-stone-300 text-blue-600 focus:ring-blue-500" />
+          <span>Attend online</span>
+        </label>
+
+        <%= form.hidden_field :attendance_mode, id: "attendance-mode-value" %>
+
+        <p id="self-registration-error" class="registration-modal__error" hidden>Please choose either physical or online attendance to continue.</p>
+
+        <div class="registration-modal__actions">
+          <button type="button" id="self-registration-cancel" class="landing-auth__button">Cancel</button>
+          <button type="submit" id="self-registration-continue" class="landing-auth__button">Continue</button>
+        </div>
+      <% end %>
+    </div>
+
+    <div id="self-registration-remove-panel" hidden>
+      <p class="registration-modal__copy">You are already registered for this conference.</p>
+      <div class="registration-modal__status">
+        Current attendance: <strong><%= @current_registration&.attending_physically? ? "Physical" : "Online" %></strong>
+      </div>
+
+      <div class="registration-modal__actions">
+        <button type="button" id="self-registration-remove-cancel" class="landing-auth__button">Keep registration</button>
+        <%= button_to "Remove registration", registration_path, method: :delete, class: "landing-auth__button" %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="invite-modal" class="invite-modal" hidden>
+  <div class="invite-modal__panel" role="dialog" aria-modal="true" aria-labelledby="invite-modal-title">
+    <h2 id="invite-modal-title" class="invite-modal__title">Invite attendee</h2>
+    <p class="invite-modal__copy">Enter the first name and email address for the invitation.</p>
 <div id="invite-modal" class="invite-modal" hidden>
   <div class="invite-modal__panel" role="dialog" aria-modal="true" aria-labelledby="invite-modal-title">
     <h2 id="invite-modal-title" class="invite-modal__title">Invite attendee</h2>
@@ -187,6 +303,7 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
+    const alreadyRegistered = <%= @current_registration.present? ? "true" : "false" %>;
     const signedInUserName = "<%= j([current_user&.first_name, current_user&.last_name].compact.join(" ").presence || current_user&.email.to_s) %>";
     const registerButton = document.getElementById("register-button");
     const registerSection = document.getElementById("register-section");
@@ -195,6 +312,17 @@
     const registrationNextButton = document.getElementById("registration-next-button");
     const scheduleButton = document.getElementById("schedule-button");
     const scheduleSection = document.getElementById("schedule-section");
+    const selfRegistrationModal = document.getElementById("self-registration-modal");
+    const selfRegistrationCancel = document.getElementById("self-registration-cancel");
+    const selfRegistrationRemoveCancel = document.getElementById("self-registration-remove-cancel");
+    const selfRegistrationContinue = document.getElementById("self-registration-continue");
+    const selfRegistrationError = document.getElementById("self-registration-error");
+    const attendancePhysicalOption = document.getElementById("attendance-physical-option");
+    const attendanceOnlineOption = document.getElementById("attendance-online-option");
+    const attendanceModeValue = document.getElementById("attendance-mode-value");
+    const selfRegistrationCreatePanel = document.getElementById("self-registration-create-panel");
+    const selfRegistrationRemovePanel = document.getElementById("self-registration-remove-panel");
+    const selfRegistrationForm = document.getElementById("self-registration-form");
     const inviteModal = document.getElementById("invite-modal");
     const inviteEmailInput = document.getElementById("invite-email-input");
     const inviteFirstNameInput = document.getElementById("invite-first-name-input");
@@ -204,6 +332,31 @@
     const invitePreviewModal = document.getElementById("invite-preview-modal");
     const invitePreviewBody = document.getElementById("invite-preview-body");
     const invitePreviewClose = document.getElementById("invite-preview-close");
+
+    const closeSelfRegistrationModal = () => {
+      if (!selfRegistrationModal) {
+        return;
+      }
+
+      selfRegistrationModal.hidden = true;
+    };
+
+    const openSelfRegistrationModal = () => {
+      if (!selfRegistrationModal) {
+        return;
+      }
+
+      if (selfRegistrationError) {
+        selfRegistrationError.hidden = true;
+      }
+
+      if (selfRegistrationCreatePanel && selfRegistrationRemovePanel) {
+        selfRegistrationCreatePanel.hidden = alreadyRegistered;
+        selfRegistrationRemovePanel.hidden = !alreadyRegistered;
+      }
+
+      selfRegistrationModal.hidden = false;
+    };
 
     const closeInviteModal = () => {
       if (!inviteModal) {
@@ -216,6 +369,10 @@
     const openInviteModal = () => {
       if (!inviteModal) {
         return;
+      }
+
+      if (inviteModalError) {
+        inviteModalError.hidden = true;
       }
 
       inviteModalError.hidden = true;
@@ -272,6 +429,45 @@ ${signedInUserName}`;
       });
     }
 
+    if (registrationNextButton && registerSelfOption) {
+      registrationNextButton.addEventListener("click", () => {
+        if (registerSelfOption.checked) {
+          openSelfRegistrationModal();
+          return;
+        }
+
+        if (inviteOtherOption?.checked) {
+          openInviteModal();
+          return;
+        }
+      });
+    }
+
+    selfRegistrationCancel?.addEventListener("click", closeSelfRegistrationModal);
+    selfRegistrationRemoveCancel?.addEventListener("click", closeSelfRegistrationModal);
+    selfRegistrationForm?.addEventListener("submit", (event) => {
+      if (attendancePhysicalOption?.checked) {
+        if (attendanceModeValue) {
+          attendanceModeValue.value = "physical";
+        }
+
+        return;
+      }
+
+      if (attendanceOnlineOption?.checked) {
+        if (attendanceModeValue) {
+          attendanceModeValue.value = "online";
+        }
+
+        return;
+      }
+
+      event.preventDefault();
+
+      if (selfRegistrationError) {
+        selfRegistrationError.hidden = false;
+      }
+    });
     if (registrationNextButton && inviteOtherOption) {
       registrationNextButton.addEventListener("click", () => {
         if (!inviteOtherOption.checked) {
@@ -288,6 +484,17 @@ ${signedInUserName}`;
       const invitedEmail = inviteEmailInput?.value.trim();
 
       if (!invitedFirstName || !invitedEmail) {
+        if (inviteModalError) {
+          inviteModalError.hidden = false;
+        }
+
+        return;
+      }
+
+      if (inviteModalError) {
+        inviteModalError.hidden = true;
+      }
+
         inviteModalError.hidden = false;
         return;
       }
@@ -297,6 +504,12 @@ ${signedInUserName}`;
       openInvitePreviewModal(invitedFirstName);
     });
     invitePreviewClose?.addEventListener("click", closeInvitePreviewModal);
+
+    selfRegistrationModal?.addEventListener("click", (event) => {
+      if (event.target === selfRegistrationModal) {
+        closeSelfRegistrationModal();
+      }
+    });
 
     inviteModal?.addEventListener("click", (event) => {
       if (event.target === inviteModal) {

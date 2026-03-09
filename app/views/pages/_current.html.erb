@@ -1,4 +1,4 @@
-<% conference = Conference.find_by(current: true) %>
+<% conference = @current_conference %>
 <% schedules_present = defined?(@schedules) && @schedules.present? %>
 <% registration_name = logged_in? ? [current_user.first_name, current_user.last_name].compact.join(" ").presence : nil %>
 <% if conference %>

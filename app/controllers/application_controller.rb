@@ -17,4 +17,10 @@ class ApplicationController < ActionController::Base
   def google_oauth_configured?
     ENV["GOOGLE_CLIENT_ID"].present? && ENV["GOOGLE_CLIENT_SECRET"].present?
   end
+
+  def require_login
+    return if logged_in?
+
+    redirect_to root_path, alert: "Please sign in first."
+  end
 end

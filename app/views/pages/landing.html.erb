@@ -102,6 +102,83 @@ end %>
     color: #44403c;
   }
 
+  .invite-modal[hidden] {
+    display: none;
+  }
+
+  .invite-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(28, 25, 23, 0.45);
+    padding: 24px;
+  }
+
+  .invite-modal__panel {
+    width: min(100%, 480px);
+    border-radius: 24px;
+    background: #ffffff;
+    padding: 28px;
+    box-shadow: 0 24px 60px rgba(28, 25, 23, 0.18);
+  }
+
+  .invite-modal__title {
+    font-size: 2.4rem;
+    font-weight: 600;
+    color: #1c1917;
+  }
+
+  .invite-modal__copy {
+    margin-top: 8px;
+    font-size: 1.5rem;
+    color: #57534e;
+  }
+
+  .invite-modal__field {
+    display: block;
+    margin-top: 18px;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #44403c;
+  }
+
+  .invite-modal__input {
+    margin-top: 8px;
+    width: 100%;
+    border: 1px solid #d6d3d1;
+    border-radius: 14px;
+    padding: 12px 14px;
+    font-size: 1.6rem;
+    color: #1c1917;
+  }
+
+  .invite-modal__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  .invite-modal__error {
+    margin-top: 14px;
+    font-size: 1.4rem;
+    color: #b91c1c;
+  }
+
+  .invite-modal__draft {
+    margin-top: 20px;
+    border-radius: 18px;
+    background: #f5f5f4;
+    padding: 18px;
+    font-size: 1.5rem;
+    line-height: 1.7;
+    color: #292524;
+    white-space: pre-line;
+  }
+
   sl-button.is-active::part(base) {
     background-color: lightgreen;
     color: #000;
@@ -183,9 +260,47 @@ end %>
   </div>
 </div>
 
+<div id="invite-modal" class="invite-modal" hidden>
+  <div class="invite-modal__panel" role="dialog" aria-modal="true" aria-labelledby="invite-modal-title">
+    <h2 id="invite-modal-title" class="invite-modal__title">Invite attendee</h2>
+    <p class="invite-modal__copy">Enter the first name and email address for the invitation.</p>
+
+    <label class="invite-modal__field" for="invite-first-name-input">
+      First name
+      <input id="invite-first-name-input" class="invite-modal__input" type="text" autocomplete="given-name" required />
+    </label>
+
+    <label class="invite-modal__field" for="invite-email-input">
+      Email address
+      <input id="invite-email-input" class="invite-modal__input" type="email" autocomplete="email" required />
+    </label>
+
+    <p id="invite-modal-error" class="invite-modal__error" hidden>Please enter both the first name and email address before continuing.</p>
+
+    <div class="invite-modal__actions">
+      <button type="button" id="invite-modal-cancel" class="landing-auth__button">Cancel</button>
+      <button type="button" id="invite-modal-save" class="landing-auth__button">Continue</button>
+    </div>
+  </div>
+</div>
+
+<div id="invite-preview-modal" class="invite-modal" hidden>
+  <div class="invite-modal__panel" role="dialog" aria-modal="true" aria-labelledby="invite-preview-title">
+    <h2 id="invite-preview-title" class="invite-modal__title">Invitation draft</h2>
+    <p class="invite-modal__copy">Preview of the email that would be sent.</p>
+
+    <div id="invite-preview-body" class="invite-modal__draft"></div>
+
+    <div class="invite-modal__actions">
+      <button type="button" id="invite-preview-close" class="landing-auth__button">Close</button>
+    </div>
+  </div>
+</div>
+
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const alreadyRegistered = <%= @current_registration.present? ? "true" : "false" %>;
+    const signedInUserName = "<%= j([current_user&.first_name, current_user&.last_name].compact.join(" ").presence || current_user&.email.to_s) %>";
     const registerButton = document.getElementById("register-button");
     const registerSection = document.getElementById("register-section");
     const registerSelfOption = document.getElementById("register-self-option");
@@ -204,6 +319,15 @@ end %>
     const selfRegistrationCreatePanel = document.getElementById("self-registration-create-panel");
     const selfRegistrationRemovePanel = document.getElementById("self-registration-remove-panel");
     const selfRegistrationForm = document.getElementById("self-registration-form");
+    const inviteModal = document.getElementById("invite-modal");
+    const inviteEmailInput = document.getElementById("invite-email-input");
+    const inviteFirstNameInput = document.getElementById("invite-first-name-input");
+    const inviteModalError = document.getElementById("invite-modal-error");
+    const inviteModalCancel = document.getElementById("invite-modal-cancel");
+    const inviteModalSave = document.getElementById("invite-modal-save");
+    const invitePreviewModal = document.getElementById("invite-preview-modal");
+    const invitePreviewBody = document.getElementById("invite-preview-body");
+    const invitePreviewClose = document.getElementById("invite-preview-close");
 
     const closeSelfRegistrationModal = () => {
       if (!selfRegistrationModal) {
@@ -228,6 +352,52 @@ end %>
       }
 
       selfRegistrationModal.hidden = false;
+    };
+
+    const closeInviteModal = () => {
+      if (!inviteModal) {
+        return;
+      }
+
+      inviteModal.hidden = true;
+    };
+
+    const openInviteModal = () => {
+      if (!inviteModal) {
+        return;
+      }
+
+      if (inviteModalError) {
+        inviteModalError.hidden = true;
+      }
+
+      inviteModal.hidden = false;
+      inviteFirstNameInput?.focus();
+    };
+
+    const closeInvitePreviewModal = () => {
+      if (!invitePreviewModal) {
+        return;
+      }
+
+      invitePreviewModal.hidden = true;
+    };
+
+    const openInvitePreviewModal = (invitedFirstName) => {
+      if (!invitePreviewModal || !invitePreviewBody) {
+        return;
+      }
+
+      invitePreviewBody.textContent = `Hi ${invitedFirstName},
+
+I would like to invite you to join the upcoming FMUG conference.
+
+This is placeholder text for the invitation email body. We will replace this draft with the real conference details later.
+
+Best regards,
+${signedInUserName}`;
+
+      invitePreviewModal.hidden = false;
     };
 
     if (registerButton && registerSection) {
@@ -262,6 +432,7 @@ end %>
         }
 
         if (inviteOtherOption?.checked) {
+          openInviteModal();
           return;
         }
       });
@@ -292,10 +463,43 @@ end %>
         selfRegistrationError.hidden = false;
       }
     });
+    inviteModalCancel?.addEventListener("click", closeInviteModal);
+    inviteModalSave?.addEventListener("click", () => {
+      const invitedFirstName = inviteFirstNameInput?.value.trim();
+      const invitedEmail = inviteEmailInput?.value.trim();
+
+      if (!invitedFirstName || !invitedEmail) {
+        if (inviteModalError) {
+          inviteModalError.hidden = false;
+        }
+
+        return;
+      }
+
+      if (inviteModalError) {
+        inviteModalError.hidden = true;
+      }
+
+      closeInviteModal();
+      openInvitePreviewModal(invitedFirstName);
+    });
+    invitePreviewClose?.addEventListener("click", closeInvitePreviewModal);
 
     selfRegistrationModal?.addEventListener("click", (event) => {
       if (event.target === selfRegistrationModal) {
         closeSelfRegistrationModal();
+      }
+    });
+
+    inviteModal?.addEventListener("click", (event) => {
+      if (event.target === inviteModal) {
+        closeInviteModal();
+      }
+    });
+
+    invitePreviewModal?.addEventListener("click", (event) => {
+      if (event.target === invitePreviewModal) {
+        closeInvitePreviewModal();
       }
     });
   });

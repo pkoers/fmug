@@ -312,6 +312,40 @@ end %>
   </div>
 </div>
 
+<div id="dietary-requirements-modal" class="registration-modal" hidden>
+  <div class="registration-modal__panel" role="dialog" aria-modal="true" aria-labelledby="dietary-requirements-title">
+    <h2 id="dietary-requirements-title" class="registration-modal__title">Do you have any dietary requirements</h2>
+    <p class="registration-modal__copy">Select yes or no.</p>
+
+    <div class="mt-5">
+      <label class="registration-modal__choice" for="dietary-requirements-yes">
+        <input type="radio" name="dietary_requirements" id="dietary-requirements-yes" class="h-6 w-6 border-stone-300 text-blue-600 focus:ring-blue-500" />
+        <span>Yes</span>
+      </label>
+
+      <input
+        id="dietary-requirements-text"
+        type="text"
+        class="registration-modal__text-input"
+        value="Please specify"
+        hidden
+      />
+    </div>
+
+    <label class="registration-modal__choice" for="dietary-requirements-no">
+      <input type="radio" name="dietary_requirements" id="dietary-requirements-no" class="h-6 w-6 border-stone-300 text-blue-600 focus:ring-blue-500" />
+      <span>No</span>
+    </label>
+
+    <p id="dietary-requirements-error" class="registration-modal__error" hidden>Please choose yes or no before continuing.</p>
+
+    <div class="registration-modal__actions">
+      <button type="button" id="dietary-requirements-cancel" class="landing-auth__button">Cancel</button>
+      <button type="button" id="dietary-requirements-continue" class="landing-auth__button">Continue</button>
+    </div>
+  </div>
+</div>
+
 <div id="invite-modal" class="invite-modal" hidden>
   <div class="invite-modal__panel" role="dialog" aria-modal="true" aria-labelledby="invite-modal-title">
     <h2 id="invite-modal-title" class="invite-modal__title">Invite attendee</h2>
@@ -380,6 +414,13 @@ end %>
     const agendaSomethingElseOption = document.getElementById("agenda-something-else-option");
     const agendaSomethingElseText = document.getElementById("agenda-something-else-text");
     const agendaNothingOption = document.getElementById("agenda-nothing-option");
+    const dietaryRequirementsModal = document.getElementById("dietary-requirements-modal");
+    const dietaryRequirementsCancel = document.getElementById("dietary-requirements-cancel");
+    const dietaryRequirementsContinue = document.getElementById("dietary-requirements-continue");
+    const dietaryRequirementsError = document.getElementById("dietary-requirements-error");
+    const dietaryRequirementsYes = document.getElementById("dietary-requirements-yes");
+    const dietaryRequirementsNo = document.getElementById("dietary-requirements-no");
+    const dietaryRequirementsText = document.getElementById("dietary-requirements-text");
     const inviteModal = document.getElementById("invite-modal");
     const inviteEmailInput = document.getElementById("invite-email-input");
     const inviteFirstNameInput = document.getElementById("invite-first-name-input");
@@ -434,6 +475,26 @@ end %>
       }
 
       agendaReservationModal.hidden = false;
+    };
+
+    const closeDietaryRequirementsModal = () => {
+      if (!dietaryRequirementsModal) {
+        return;
+      }
+
+      dietaryRequirementsModal.hidden = true;
+    };
+
+    const openDietaryRequirementsModal = () => {
+      if (!dietaryRequirementsModal) {
+        return;
+      }
+
+      if (dietaryRequirementsError) {
+        dietaryRequirementsError.hidden = true;
+      }
+
+      dietaryRequirementsModal.hidden = false;
     };
 
     const closeInviteModal = () => {
@@ -581,6 +642,49 @@ ${signedInUserName}`;
       }
 
       closeAgendaReservationModal();
+      openDietaryRequirementsModal();
+    });
+
+    dietaryRequirementsYes?.addEventListener("change", () => {
+      if (dietaryRequirementsText) {
+        dietaryRequirementsText.hidden = false;
+        dietaryRequirementsText.focus();
+      }
+    });
+
+    dietaryRequirementsNo?.addEventListener("change", () => {
+      if (dietaryRequirementsText) {
+        dietaryRequirementsText.hidden = true;
+      }
+    });
+
+    dietaryRequirementsCancel?.addEventListener("click", closeDietaryRequirementsModal);
+    dietaryRequirementsContinue?.addEventListener("click", () => {
+      if (!dietaryRequirementsYes?.checked && !dietaryRequirementsNo?.checked) {
+        if (dietaryRequirementsError) {
+          dietaryRequirementsError.hidden = false;
+          dietaryRequirementsError.textContent = "Please choose yes or no before continuing.";
+        }
+
+        return;
+      }
+
+      const dietaryDetails = dietaryRequirementsText?.value.trim();
+
+      if (dietaryRequirementsYes?.checked && (!dietaryDetails || dietaryDetails === "Please specify")) {
+        if (dietaryRequirementsError) {
+          dietaryRequirementsError.hidden = false;
+          dietaryRequirementsError.textContent = "Please specify your dietary requirements before continuing.";
+        }
+
+        return;
+      }
+
+      if (dietaryRequirementsError) {
+        dietaryRequirementsError.hidden = true;
+      }
+
+      closeDietaryRequirementsModal();
       selfRegistrationReadyToSubmit = true;
       selfRegistrationForm?.requestSubmit();
     });
@@ -616,6 +720,12 @@ ${signedInUserName}`;
     agendaReservationModal?.addEventListener("click", (event) => {
       if (event.target === agendaReservationModal) {
         closeAgendaReservationModal();
+      }
+    });
+
+    dietaryRequirementsModal?.addEventListener("click", (event) => {
+      if (event.target === dietaryRequirementsModal) {
+        closeDietaryRequirementsModal();
       }
     });
 

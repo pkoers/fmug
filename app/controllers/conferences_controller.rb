@@ -65,6 +65,6 @@ class ConferencesController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def conference_params
-      params.require(:conference).permit(:edition, :location, :start_date, :end_date, :host, :current)
+      params.require(:conference).permit(:edition, :location, :start_date, :end_date, :host, :current, :image)
     end
 end

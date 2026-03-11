@@ -1,6 +1,6 @@
 class Conference < ApplicationRecord
   has_one_attached :image, dependent: :purge
-  has_many :schedules, -> { where("conferences.current = ?", true) }, dependent: :destroy
+  has_many :schedules, dependent: :destroy
   has_many :registrations, dependent: :destroy
   has_many :users, through: :registrations
 

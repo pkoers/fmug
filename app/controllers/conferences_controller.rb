@@ -36,8 +36,12 @@ class ConferencesController < ApplicationController
 
   # PATCH/PUT /conferences/1 or /conferences/1.json
   def update
+    remove_image = conference_params[:remove_image] == "1"
+    attributes = conference_params.except(:remove_image)
+
     respond_to do |format|
-      if @conference.update(conference_params)
+      if @conference.update(attributes)
+        @conference.image.purge if remove_image && attributes[:image].blank? && @conference.image.attached?
         format.html { redirect_to @conference, notice: "Conference was successfully updated." }
         format.json { render :show, status: :ok, location: @conference }
       else
@@ -65,6 +69,6 @@ class ConferencesController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def conference_params
-      params.require(:conference).permit(:edition, :location, :start_date, :end_date, :host, :current, :image)
+      params.require(:conference).permit(:edition, :location, :start_date, :end_date, :host, :current, :image, :remove_image)
     end
 end

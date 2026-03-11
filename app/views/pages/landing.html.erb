@@ -258,6 +258,14 @@ end %>
         </label>
 
         <%= form.hidden_field :attendance_mode, id: "attendance-mode-value" %>
+        <%= form.hidden_field :agenda_present, id: "agenda-present-value", value: "0" %>
+        <%= form.hidden_field :agenda_question, id: "agenda-question-value", value: "0" %>
+        <%= form.hidden_field :agenda_something_else, id: "agenda-something-else-value", value: "0" %>
+        <%= form.hidden_field :agenda_something_else_text, id: "agenda-something-else-text-value" %>
+        <%= form.hidden_field :agenda_nothing_to_present, id: "agenda-nothing-value", value: "0" %>
+        <%= form.hidden_field :has_dietary_requirements, id: "dietary-requirements-value", value: "0" %>
+        <%= form.hidden_field :dietary_requirements_text, id: "dietary-requirements-text-value" %>
+        <%= form.hidden_field :chair_note, id: "chair-note-value" %>
 
         <p id="self-registration-error" class="registration-modal__error" hidden>Please choose either physical or online attendance to continue.</p>
 
@@ -444,6 +452,11 @@ end %>
     const agendaSomethingElseOption = document.getElementById("agenda-something-else-option");
     const agendaSomethingElseText = document.getElementById("agenda-something-else-text");
     const agendaNothingOption = document.getElementById("agenda-nothing-option");
+    const agendaPresentValue = document.getElementById("agenda-present-value");
+    const agendaQuestionValue = document.getElementById("agenda-question-value");
+    const agendaSomethingElseValue = document.getElementById("agenda-something-else-value");
+    const agendaSomethingElseTextValue = document.getElementById("agenda-something-else-text-value");
+    const agendaNothingValue = document.getElementById("agenda-nothing-value");
     const dietaryRequirementsModal = document.getElementById("dietary-requirements-modal");
     const dietaryRequirementsCancel = document.getElementById("dietary-requirements-cancel");
     const dietaryRequirementsContinue = document.getElementById("dietary-requirements-continue");
@@ -451,9 +464,13 @@ end %>
     const dietaryRequirementsYes = document.getElementById("dietary-requirements-yes");
     const dietaryRequirementsNo = document.getElementById("dietary-requirements-no");
     const dietaryRequirementsText = document.getElementById("dietary-requirements-text");
+    const dietaryRequirementsValue = document.getElementById("dietary-requirements-value");
+    const dietaryRequirementsTextValue = document.getElementById("dietary-requirements-text-value");
     const registrationNoteModal = document.getElementById("registration-note-modal");
     const registrationNoteCancel = document.getElementById("registration-note-cancel");
     const registrationNoteContinue = document.getElementById("registration-note-continue");
+    const registrationNoteText = document.getElementById("registration-note-text");
+    const chairNoteValue = document.getElementById("chair-note-value");
     const inviteModal = document.getElementById("invite-modal");
     const inviteEmailInput = document.getElementById("invite-email-input");
     const inviteFirstNameInput = document.getElementById("invite-first-name-input");
@@ -690,6 +707,26 @@ ${signedInUserName}`;
         agendaReservationError.hidden = true;
       }
 
+      if (agendaPresentValue) {
+        agendaPresentValue.value = agendaPresentOption?.checked ? "1" : "0";
+      }
+
+      if (agendaQuestionValue) {
+        agendaQuestionValue.value = agendaQuestionOption?.checked ? "1" : "0";
+      }
+
+      if (agendaSomethingElseValue) {
+        agendaSomethingElseValue.value = agendaSomethingElseOption?.checked ? "1" : "0";
+      }
+
+      if (agendaSomethingElseTextValue) {
+        agendaSomethingElseTextValue.value = agendaSomethingElseText?.value.trim() || "";
+      }
+
+      if (agendaNothingValue) {
+        agendaNothingValue.value = agendaNothingOption?.checked ? "1" : "0";
+      }
+
       closeAgendaReservationModal();
       openDietaryRequirementsModal();
     });
@@ -733,12 +770,24 @@ ${signedInUserName}`;
         dietaryRequirementsError.hidden = true;
       }
 
+      if (dietaryRequirementsValue) {
+        dietaryRequirementsValue.value = dietaryRequirementsYes?.checked ? "1" : "0";
+      }
+
+      if (dietaryRequirementsTextValue) {
+        dietaryRequirementsTextValue.value = dietaryRequirementsYes?.checked ? (dietaryDetails || "") : "";
+      }
+
       closeDietaryRequirementsModal();
       openRegistrationNoteModal();
     });
 
     registrationNoteCancel?.addEventListener("click", closeRegistrationNoteModal);
     registrationNoteContinue?.addEventListener("click", () => {
+      if (chairNoteValue) {
+        chairNoteValue.value = registrationNoteText?.value.trim() || "";
+      }
+
       closeRegistrationNoteModal();
       selfRegistrationReadyToSubmit = true;
       selfRegistrationForm?.requestSubmit();

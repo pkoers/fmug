@@ -17,7 +17,15 @@ class RegistrationsController < ApplicationController
 
     current_user.registrations.create!(
       conference: @conference,
-      attending_physically: attendance_mode == "physical"
+      attending_physically: attendance_mode == "physical",
+      agenda_present: registration_params[:agenda_present],
+      agenda_question: registration_params[:agenda_question],
+      agenda_something_else: registration_params[:agenda_something_else],
+      agenda_something_else_text: registration_params[:agenda_something_else_text],
+      agenda_nothing_to_present: registration_params[:agenda_nothing_to_present],
+      has_dietary_requirements: registration_params[:has_dietary_requirements],
+      dietary_requirements_text: registration_params[:dietary_requirements_text],
+      chair_note: registration_params[:chair_note]
     )
 
     redirect_to root_path, notice: "You are registered for Conference #{@conference.edition}."
@@ -47,6 +55,16 @@ class RegistrationsController < ApplicationController
   end
 
   def registration_params
-    params.require(:registration).permit(:attendance_mode)
+    params.require(:registration).permit(
+      :attendance_mode,
+      :agenda_present,
+      :agenda_question,
+      :agenda_something_else,
+      :agenda_something_else_text,
+      :agenda_nothing_to_present,
+      :has_dietary_requirements,
+      :dietary_requirements_text,
+      :chair_note
+    )
   end
 end

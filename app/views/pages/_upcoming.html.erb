@@ -2,11 +2,7 @@
   <ul>
     <% @conferences.reject(&:current).each do |c| %>
       <sl-card class="card-image">
-        <img
-          slot="image"
-          src="https://images.unsplash.com/photo-1547191783-94d5f8f6d8b1?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=80"
-          alt="A kitten walks towards camera on top of pallet."
-        />
+        <%= image_tag conference_image_source(c), slot: "image", alt: "Conference image" %>
         <h2 class="text-xl font-bold mb-3">Conference <%= c.edition %> <%= "(current)" if c.current %></h2>
         <p class="text-gray-600">
           <strong>When:</strong>

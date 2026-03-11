@@ -1,4 +1,5 @@
 require "test_helper"
+require "stringio"
 
 class ConferencesControllerTest < ActionDispatch::IntegrationTest
   setup do
@@ -62,5 +63,28 @@ class ConferencesControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_redirected_to conferences_url
+  end
+
+  test "should remove conference image" do
+    @conference.image.attach(
+      io: StringIO.new("fake-image"),
+      filename: "conference.png",
+      content_type: "image/png"
+    )
+
+    patch conference_url(@conference), params: {
+      conference: {
+        edition: @conference.edition,
+        start_date: @conference.start_date,
+        end_date: @conference.end_date,
+        host: @conference.host,
+        location: @conference.location,
+        current: @conference.current,
+        remove_image: "1"
+      }
+    }
+
+    assert_redirected_to conference_url(@conference)
+    assert_not @conference.reload.image.attached?
   end
 end

@@ -102,6 +102,16 @@ end %>
     color: #44403c;
   }
 
+  .registration-modal__text-input {
+    margin-top: 10px;
+    width: 100%;
+    border: 1px solid #d6d3d1;
+    border-radius: 14px;
+    padding: 12px 14px;
+    font-size: 1.6rem;
+    color: #1c1917;
+  }
+
   .invite-modal[hidden] {
     display: none;
   }
@@ -260,6 +270,48 @@ end %>
   </div>
 </div>
 
+<div id="agenda-reservation-modal" class="registration-modal" hidden>
+  <div class="registration-modal__panel" role="dialog" aria-modal="true" aria-labelledby="agenda-reservation-title">
+    <h2 id="agenda-reservation-title" class="registration-modal__title">Please reserve time on the agenda</h2>
+    <p class="registration-modal__copy">Select one or more options below.</p>
+
+    <label class="registration-modal__choice" for="agenda-present-option">
+      <input type="checkbox" id="agenda-present-option" class="h-6 w-6 border-stone-300 text-blue-600 focus:ring-blue-500" />
+      <span>Present / Pitch an idea to the community</span>
+    </label>
+
+    <label class="registration-modal__choice" for="agenda-question-option">
+      <input type="checkbox" id="agenda-question-option" class="h-6 w-6 border-stone-300 text-blue-600 focus:ring-blue-500" />
+      <span>Ask a question/discuss a topic</span>
+    </label>
+
+    <div class="mt-5">
+      <label class="registration-modal__choice" for="agenda-something-else-option">
+        <input type="checkbox" id="agenda-something-else-option" class="h-6 w-6 border-stone-300 text-blue-600 focus:ring-blue-500" />
+        <span>Something else</span>
+      </label>
+      <input
+        id="agenda-something-else-text"
+        type="text"
+        class="registration-modal__text-input"
+        placeholder="Add a note"
+      />
+    </div>
+
+    <label class="registration-modal__choice" for="agenda-nothing-option">
+      <input type="checkbox" id="agenda-nothing-option" class="h-6 w-6 border-stone-300 text-blue-600 focus:ring-blue-500" />
+      <span>Nothing to present</span>
+    </label>
+
+    <p id="agenda-reservation-error" class="registration-modal__error" hidden>Please select at least one option before continuing.</p>
+
+    <div class="registration-modal__actions">
+      <button type="button" id="agenda-reservation-cancel" class="landing-auth__button">Cancel</button>
+      <button type="button" id="agenda-reservation-continue" class="landing-auth__button">Continue</button>
+    </div>
+  </div>
+</div>
+
 <div id="invite-modal" class="invite-modal" hidden>
   <div class="invite-modal__panel" role="dialog" aria-modal="true" aria-labelledby="invite-modal-title">
     <h2 id="invite-modal-title" class="invite-modal__title">Invite attendee</h2>
@@ -319,6 +371,15 @@ end %>
     const selfRegistrationCreatePanel = document.getElementById("self-registration-create-panel");
     const selfRegistrationRemovePanel = document.getElementById("self-registration-remove-panel");
     const selfRegistrationForm = document.getElementById("self-registration-form");
+    const agendaReservationModal = document.getElementById("agenda-reservation-modal");
+    const agendaReservationCancel = document.getElementById("agenda-reservation-cancel");
+    const agendaReservationContinue = document.getElementById("agenda-reservation-continue");
+    const agendaReservationError = document.getElementById("agenda-reservation-error");
+    const agendaPresentOption = document.getElementById("agenda-present-option");
+    const agendaQuestionOption = document.getElementById("agenda-question-option");
+    const agendaSomethingElseOption = document.getElementById("agenda-something-else-option");
+    const agendaSomethingElseText = document.getElementById("agenda-something-else-text");
+    const agendaNothingOption = document.getElementById("agenda-nothing-option");
     const inviteModal = document.getElementById("invite-modal");
     const inviteEmailInput = document.getElementById("invite-email-input");
     const inviteFirstNameInput = document.getElementById("invite-first-name-input");
@@ -328,6 +389,7 @@ end %>
     const invitePreviewModal = document.getElementById("invite-preview-modal");
     const invitePreviewBody = document.getElementById("invite-preview-body");
     const invitePreviewClose = document.getElementById("invite-preview-close");
+    let selfRegistrationReadyToSubmit = false;
 
     const closeSelfRegistrationModal = () => {
       if (!selfRegistrationModal) {
@@ -352,6 +414,26 @@ end %>
       }
 
       selfRegistrationModal.hidden = false;
+    };
+
+    const closeAgendaReservationModal = () => {
+      if (!agendaReservationModal) {
+        return;
+      }
+
+      agendaReservationModal.hidden = true;
+    };
+
+    const openAgendaReservationModal = () => {
+      if (!agendaReservationModal) {
+        return;
+      }
+
+      if (agendaReservationError) {
+        agendaReservationError.hidden = true;
+      }
+
+      agendaReservationModal.hidden = false;
     };
 
     const closeInviteModal = () => {
@@ -442,17 +524,26 @@ ${signedInUserName}`;
     selfRegistrationCancel?.addEventListener("click", closeSelfRegistrationModal);
     selfRegistrationRemoveCancel?.addEventListener("click", closeSelfRegistrationModal);
     selfRegistrationForm?.addEventListener("submit", (event) => {
+      if (selfRegistrationReadyToSubmit) {
+        selfRegistrationReadyToSubmit = false;
+        return;
+      }
+
       if (attendancePhysicalOption?.checked) {
         if (attendanceModeValue) {
           attendanceModeValue.value = "physical";
         }
-
-        return;
       }
-
-      if (attendanceOnlineOption?.checked) {
+      else if (attendanceOnlineOption?.checked) {
         if (attendanceModeValue) {
           attendanceModeValue.value = "online";
+        }
+      }
+      else {
+        event.preventDefault();
+
+        if (selfRegistrationError) {
+          selfRegistrationError.hidden = false;
         }
 
         return;
@@ -461,8 +552,37 @@ ${signedInUserName}`;
       event.preventDefault();
 
       if (selfRegistrationError) {
-        selfRegistrationError.hidden = false;
+        selfRegistrationError.hidden = true;
       }
+
+      closeSelfRegistrationModal();
+      openAgendaReservationModal();
+    });
+
+    agendaReservationCancel?.addEventListener("click", closeAgendaReservationModal);
+    agendaReservationContinue?.addEventListener("click", () => {
+      const selectedAgendaOptions = [
+        agendaPresentOption,
+        agendaQuestionOption,
+        agendaSomethingElseOption,
+        agendaNothingOption
+      ].some((option) => option?.checked);
+
+      if (!selectedAgendaOptions) {
+        if (agendaReservationError) {
+          agendaReservationError.hidden = false;
+        }
+
+        return;
+      }
+
+      if (agendaReservationError) {
+        agendaReservationError.hidden = true;
+      }
+
+      closeAgendaReservationModal();
+      selfRegistrationReadyToSubmit = true;
+      selfRegistrationForm?.requestSubmit();
     });
 
     inviteModalCancel?.addEventListener("click", closeInviteModal);
@@ -490,6 +610,12 @@ ${signedInUserName}`;
     selfRegistrationModal?.addEventListener("click", (event) => {
       if (event.target === selfRegistrationModal) {
         closeSelfRegistrationModal();
+      }
+    });
+
+    agendaReservationModal?.addEventListener("click", (event) => {
+      if (event.target === agendaReservationModal) {
+        closeAgendaReservationModal();
       }
     });
 

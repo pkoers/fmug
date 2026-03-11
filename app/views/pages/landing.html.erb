@@ -112,6 +112,18 @@ end %>
     color: #1c1917;
   }
 
+  .registration-modal__textarea {
+    margin-top: 14px;
+    width: 100%;
+    min-height: 140px;
+    border: 1px solid #d6d3d1;
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-size: 1.6rem;
+    color: #1c1917;
+    resize: vertical;
+  }
+
   .invite-modal[hidden] {
     display: none;
   }
@@ -346,6 +358,24 @@ end %>
   </div>
 </div>
 
+<div id="registration-note-modal" class="registration-modal" hidden>
+  <div class="registration-modal__panel" role="dialog" aria-modal="true" aria-labelledby="registration-note-title">
+    <h2 id="registration-note-title" class="registration-modal__title">Something else</h2>
+    <p class="registration-modal__copy">Leave a message for the Chair regarding the agenda or registration. For example, whether a visa is needed.</p>
+
+    <textarea
+      id="registration-note-text"
+      class="registration-modal__textarea"
+      placeholder="Optional message for the Chair"
+    ></textarea>
+
+    <div class="registration-modal__actions">
+      <button type="button" id="registration-note-cancel" class="landing-auth__button">Cancel</button>
+      <button type="button" id="registration-note-continue" class="landing-auth__button">Continue</button>
+    </div>
+  </div>
+</div>
+
 <div id="invite-modal" class="invite-modal" hidden>
   <div class="invite-modal__panel" role="dialog" aria-modal="true" aria-labelledby="invite-modal-title">
     <h2 id="invite-modal-title" class="invite-modal__title">Invite attendee</h2>
@@ -421,6 +451,9 @@ end %>
     const dietaryRequirementsYes = document.getElementById("dietary-requirements-yes");
     const dietaryRequirementsNo = document.getElementById("dietary-requirements-no");
     const dietaryRequirementsText = document.getElementById("dietary-requirements-text");
+    const registrationNoteModal = document.getElementById("registration-note-modal");
+    const registrationNoteCancel = document.getElementById("registration-note-cancel");
+    const registrationNoteContinue = document.getElementById("registration-note-continue");
     const inviteModal = document.getElementById("invite-modal");
     const inviteEmailInput = document.getElementById("invite-email-input");
     const inviteFirstNameInput = document.getElementById("invite-first-name-input");
@@ -495,6 +528,22 @@ end %>
       }
 
       dietaryRequirementsModal.hidden = false;
+    };
+
+    const closeRegistrationNoteModal = () => {
+      if (!registrationNoteModal) {
+        return;
+      }
+
+      registrationNoteModal.hidden = true;
+    };
+
+    const openRegistrationNoteModal = () => {
+      if (!registrationNoteModal) {
+        return;
+      }
+
+      registrationNoteModal.hidden = false;
     };
 
     const closeInviteModal = () => {
@@ -685,6 +734,12 @@ ${signedInUserName}`;
       }
 
       closeDietaryRequirementsModal();
+      openRegistrationNoteModal();
+    });
+
+    registrationNoteCancel?.addEventListener("click", closeRegistrationNoteModal);
+    registrationNoteContinue?.addEventListener("click", () => {
+      closeRegistrationNoteModal();
       selfRegistrationReadyToSubmit = true;
       selfRegistrationForm?.requestSubmit();
     });
@@ -726,6 +781,12 @@ ${signedInUserName}`;
     dietaryRequirementsModal?.addEventListener("click", (event) => {
       if (event.target === dietaryRequirementsModal) {
         closeDietaryRequirementsModal();
+      }
+    });
+
+    registrationNoteModal?.addEventListener("click", (event) => {
+      if (event.target === registrationNoteModal) {
+        closeRegistrationNoteModal();
       }
     });
 

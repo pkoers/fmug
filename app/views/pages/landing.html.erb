@@ -218,6 +218,13 @@ end %>
   }
 </style>
 
+<% if @invitation_token_supplied %>
+  <div class="fixed inset-0 flex items-center justify-center px-6">
+    <div class="rounded-3xl border border-stone-200 bg-white px-8 py-10 text-center text-3xl font-semibold text-stone-900 shadow-sm">
+      <%= @invitation_token_valid ? "Token validated and still valid" : "Invalid invitation token" %>
+    </div>
+  </div>
+<% else %>
 <div class="flex w-full flex-col space-y-8">
   <div class="landing-auth">
     <% if logged_in? %>
@@ -895,3 +902,4 @@ end %>
     });
   });
 </script>
+<% end %>

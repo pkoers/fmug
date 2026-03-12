@@ -1,6 +1,7 @@
 Rails.application.routes.draw do
   resources :schedules
   resources :conferences
+  resources :invitations, only: [ :create ]
   resource :registration, only: [ :create, :destroy ]
   match "/auth/:provider/callback", to: "sessions#create", via: [ :get, :post ]
   match "/auth/failure", to: "sessions#failure", via: [ :get, :post ]

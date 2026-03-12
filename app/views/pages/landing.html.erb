@@ -415,31 +415,37 @@ end %>
     <h2 id="invite-modal-title" class="invite-modal__title">Invite attendee</h2>
     <p class="invite-modal__copy">Enter the first name and email address for the invitation.</p>
 
-    <label class="invite-modal__field" for="invite-first-name-input">
-      First name
-      <input id="invite-first-name-input" class="invite-modal__input" type="text" autocomplete="given-name" required />
-    </label>
+    <%= form_with scope: :invitation, url: invitations_path, method: :post, local: true, id: "invite-form" do |form| %>
+      <label class="invite-modal__field" for="invite-first-name-input">
+        First name
+        <%= form.text_field :first_name, id: "invite-first-name-input", class: "invite-modal__input", autocomplete: "given-name", required: true %>
+      </label>
 
-    <label class="invite-modal__field" for="invite-email-input">
-      Email address
-      <input id="invite-email-input" class="invite-modal__input" type="email" autocomplete="email" required />
-    </label>
+      <label class="invite-modal__field" for="invite-email-input">
+        Email address
+        <%= form.email_field :email, id: "invite-email-input", class: "invite-modal__input", autocomplete: "email", required: true %>
+      </label>
 
-    <p id="invite-modal-error" class="invite-modal__error" hidden>Please enter both the first name and email address before continuing.</p>
+      <p id="invite-modal-error" class="invite-modal__error" hidden>Please enter both the first name and email address before continuing.</p>
 
-    <div class="invite-modal__actions">
-      <button type="button" id="invite-modal-cancel" class="landing-auth__button">Cancel</button>
-      <button type="button" id="invite-modal-save" class="landing-auth__button">Continue</button>
-    </div>
+      <div class="invite-modal__actions">
+        <button type="button" id="invite-modal-cancel" class="landing-auth__button">Cancel</button>
+        <button type="submit" id="invite-modal-save" class="landing-auth__button">Continue</button>
+      </div>
+    <% end %>
   </div>
 </div>
 
-<div id="invite-preview-modal" class="invite-modal" hidden>
+<div id="invite-preview-modal" class="invite-modal" <%= "hidden" unless @invitation_email_body.present? %>>
   <div class="invite-modal__panel" role="dialog" aria-modal="true" aria-labelledby="invite-preview-title">
-    <h2 id="invite-preview-title" class="invite-modal__title">Invitation draft</h2>
+    <h2 id="invite-preview-title" class="invite-modal__title">Invitation email</h2>
     <p class="invite-modal__copy">Preview of the email that would be sent.</p>
 
-    <div id="invite-preview-body" class="invite-modal__draft"></div>
+    <% if @invitation_email_body.present? %>
+      <div id="invite-preview-body" class="invite-modal__draft"><%= @invitation_email_body %></div>
+    <% else %>
+      <div id="invite-preview-body" class="invite-modal__draft"></div>
+    <% end %>
 
     <div class="invite-modal__actions">
       <button type="button" id="invite-preview-close" class="landing-auth__button">Close</button>
@@ -450,7 +456,6 @@ end %>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const alreadyRegistered = <%= @current_registration.present? ? "true" : "false" %>;
-    const signedInUserName = "<%= j([current_user&.first_name, current_user&.last_name].compact.join(" ").presence || current_user&.email.to_s) %>";
     const registerButton = document.getElementById("register-button");
     const registerSection = document.getElementById("register-section");
     const registerSelfOption = document.getElementById("register-self-option");
@@ -500,6 +505,7 @@ end %>
     const registrationConfirmationModal = document.getElementById("registration-confirmation-modal");
     const registrationConfirmationClose = document.getElementById("registration-confirmation-close");
     const inviteModal = document.getElementById("invite-modal");
+    const inviteForm = document.getElementById("invite-form");
     const inviteEmailInput = document.getElementById("invite-email-input");
     const inviteFirstNameInput = document.getElementById("invite-first-name-input");
     const inviteModalError = document.getElementById("invite-modal-error");
@@ -629,19 +635,10 @@ end %>
       invitePreviewModal.hidden = true;
     };
 
-    const openInvitePreviewModal = (invitedFirstName) => {
+    const openInvitePreviewModal = () => {
       if (!invitePreviewModal || !invitePreviewBody) {
         return;
       }
-
-      invitePreviewBody.textContent = `Hi ${invitedFirstName},
-
-I would like to invite you to join the upcoming FMUG conference.
-
-This is placeholder text for the invitation email body. We will replace this draft with the real conference details later.
-
-Best regards,
-${signedInUserName}`;
 
       invitePreviewModal.hidden = false;
     };
@@ -831,11 +828,13 @@ ${signedInUserName}`;
     registrationConfirmationClose?.addEventListener("click", closeRegistrationConfirmationModal);
 
     inviteModalCancel?.addEventListener("click", closeInviteModal);
-    inviteModalSave?.addEventListener("click", () => {
+    inviteForm?.addEventListener("submit", (event) => {
       const invitedFirstName = inviteFirstNameInput?.value.trim();
       const invitedEmail = inviteEmailInput?.value.trim();
 
       if (!invitedFirstName || !invitedEmail) {
+        event.preventDefault();
+
         if (inviteModalError) {
           inviteModalError.hidden = false;
         }
@@ -846,11 +845,12 @@ ${signedInUserName}`;
       if (inviteModalError) {
         inviteModalError.hidden = true;
       }
-
-      closeInviteModal();
-      openInvitePreviewModal(invitedFirstName);
     });
     invitePreviewClose?.addEventListener("click", closeInvitePreviewModal);
+
+    if (!invitePreviewModal?.hidden) {
+      openInvitePreviewModal();
+    }
 
     selfRegistrationModal?.addEventListener("click", (event) => {
       if (event.target === selfRegistrationModal) {

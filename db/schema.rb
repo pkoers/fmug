@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_11_123000) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_12_202732) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -73,6 +73,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_11_123000) do
     t.index ["user_id"], name: "index_identities_on_user_id"
   end
 
+  create_table "invitations", force: :cascade do |t|
+    t.bigint "conference_id", null: false
+    t.datetime "created_at", null: false
+    t.string "email", null: false
+    t.datetime "expires_at", null: false
+    t.string "first_name", null: false
+    t.bigint "inviter_id", null: false
+    t.string "token_digest", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "used_at"
+    t.index ["conference_id"], name: "index_invitations_on_conference_id"
+    t.index ["email"], name: "index_invitations_on_email"
+    t.index ["inviter_id"], name: "index_invitations_on_inviter_id"
+    t.index ["token_digest"], name: "index_invitations_on_token_digest", unique: true
+  end
+
   create_table "registrations", force: :cascade do |t|
     t.boolean "agenda_nothing_to_present", default: false, null: false
     t.boolean "agenda_present", default: false, null: false
@@ -119,6 +135,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_11_123000) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "identities", "users"
+  add_foreign_key "invitations", "conferences"
+  add_foreign_key "invitations", "users", column: "inviter_id"
   add_foreign_key "registrations", "conferences"
   add_foreign_key "registrations", "users"
   add_foreign_key "schedules", "conferences"

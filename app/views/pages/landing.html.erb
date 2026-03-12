@@ -220,8 +220,11 @@ end %>
 
 <% if @invitation_token_supplied %>
   <div class="fixed inset-0 flex items-center justify-center px-6">
-    <div class="rounded-3xl border border-stone-200 bg-white px-8 py-10 text-center text-3xl font-semibold text-stone-900 shadow-sm">
+    <div class="rounded-3xl border border-stone-200 bg-white px-8 py-10 text-center text-3xl font-semibold text-stone-900 shadow-sm whitespace-pre-line">
       <%= @invitation_token_valid ? "Token validated and still valid" : "Invalid invitation token" %>
+      <% if @invitation_token_valid %>
+<%= @invited_user_exists ? "you're already a user" : "welcome new user" %>
+      <% end %>
     </div>
   </div>
 <% else %>

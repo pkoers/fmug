@@ -11,7 +11,13 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     @conference = conferences(:one)
   end
 
-  test "shows success message for a valid invitation token" do
+  test "shows success message for a valid invitation token when invited email belongs to an existing user" do
+    User.create!(
+      email: "guest@example.com",
+      first_name: "Existing",
+      last_name: "Guest",
+      role: "Member"
+    )
     invitation = Invitation.create!(
       inviter: @inviter,
       conference: @conference,
@@ -23,6 +29,26 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "Token validated and still valid"
+    assert_includes response.body, "you&#39;re already a user"
+    assert_not_includes response.body, "welcome new user"
+    assert_not_includes response.body, "Invite attendee"
+    assert_not_includes response.body, "Register me for the conference"
+  end
+
+  test "shows success message for a valid invitation token when invited email is new" do
+    invitation = Invitation.create!(
+      inviter: @inviter,
+      conference: @conference,
+      first_name: "Guest",
+      email: "guest@example.com"
+    )
+
+    get root_path(invitation_token: invitation.raw_token)
+
+    assert_response :success
+    assert_includes response.body, "Token validated and still valid"
+    assert_includes response.body, "welcome new user"
+    assert_not_includes response.body, "you&#39;re already a user"
     assert_not_includes response.body, "Invite attendee"
     assert_not_includes response.body, "Register me for the conference"
   end

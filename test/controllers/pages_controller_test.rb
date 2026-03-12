@@ -36,7 +36,7 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "FMUG Conferences"
     assert_includes response.body, "You are already registered for FMUG 1"
-    assert_includes response.body, "already-registered-invitation-modal"
+    assert_includes response.body, "known-user-invitation-modal"
     assert invitation.reload.used_at.present?
   end
 
@@ -68,7 +68,7 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "shows success message for a valid invitation token when invited email belongs to an existing unregistered user" do
-    User.create!(
+    invitation_user = User.create!(
       email: "guest@example.com",
       first_name: "Existing",
       last_name: "Guest",
@@ -84,10 +84,32 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     get root_path(invitation_token: invitation.raw_token)
 
     assert_response :success
-    assert_includes response.body, "Token validated and still valid"
-    assert_includes response.body, "you&#39;re already a user"
-    assert_includes response.body, "you&#39;re not registered for the upcoming FMUG"
-    assert_not_includes response.body, "you are already registered for FMUG #1"
+    assert_includes response.body, "FMUG Conferences"
+    assert_includes response.body, "Welcome back #{invitation_user.first_name}, you are not yet registered for the upcoming FMUG"
+    assert_includes response.body, "known-user-invitation-modal"
+    assert_not_includes response.body, "Token validated and still valid"
+    assert invitation.reload.used_at.present?
+  end
+
+  test "consumed token becomes invalid after unregistered known user visit" do
+    User.create!(
+      email: "guest@example.com",
+      first_name: "Existing",
+      last_name: "Guest",
+      role: "Member"
+    )
+    invitation = Invitation.create!(
+      inviter: @inviter,
+      conference: @conference,
+      first_name: "Guest",
+      email: "guest@example.com"
+    )
+
+    get root_path(invitation_token: invitation.raw_token)
+    get root_path(invitation_token: invitation.raw_token)
+
+    assert_response :success
+    assert_includes response.body, "Invalid invitation token"
   end
 
   test "shows success message for a valid invitation token when invited email is new" do

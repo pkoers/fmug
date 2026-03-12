@@ -218,7 +218,7 @@ end %>
   }
 </style>
 
-<% if @invitation_token_supplied && !@show_already_registered_invitation_popup %>
+<% if @invitation_token_supplied && !@show_known_user_invitation_popup %>
   <div class="fixed inset-0 flex items-center justify-center px-6">
     <div class="rounded-3xl border border-stone-200 bg-white px-8 py-10 text-center text-3xl font-semibold text-stone-900 shadow-sm whitespace-pre-line">
       <%= @invitation_token_valid ? "Token validated and still valid" : "Invalid invitation token" %>
@@ -264,13 +264,13 @@ end %>
   </div>
 </div>
 
-<% if @show_already_registered_invitation_popup %>
-  <div id="already-registered-invitation-modal" class="registration-modal" hidden>
-    <div class="registration-modal__panel" role="dialog" aria-modal="true" aria-labelledby="already-registered-invitation-title">
-      <h2 id="already-registered-invitation-title" class="registration-modal__title">Registration status</h2>
-      <div class="registration-modal__draft">You are already registered for FMUG <%= @current_conference.edition %></div>
+<% if @show_known_user_invitation_popup %>
+  <div id="known-user-invitation-modal" class="registration-modal" hidden>
+    <div class="registration-modal__panel" role="dialog" aria-modal="true" aria-labelledby="known-user-invitation-title">
+      <h2 id="known-user-invitation-title" class="registration-modal__title">Registration status</h2>
+      <div class="registration-modal__draft"><%= @known_user_invitation_popup_message %></div>
       <div class="registration-modal__actions">
-        <button type="button" id="already-registered-invitation-close" class="landing-auth__button">Close</button>
+        <button type="button" id="known-user-invitation-close" class="landing-auth__button">Close</button>
       </div>
     </div>
   </div>
@@ -529,8 +529,8 @@ end %>
     const chairNoteValue = document.getElementById("chair-note-value");
     const registrationConfirmationModal = document.getElementById("registration-confirmation-modal");
     const registrationConfirmationClose = document.getElementById("registration-confirmation-close");
-    const alreadyRegisteredInvitationModal = document.getElementById("already-registered-invitation-modal");
-    const alreadyRegisteredInvitationClose = document.getElementById("already-registered-invitation-close");
+    const knownUserInvitationModal = document.getElementById("known-user-invitation-modal");
+    const knownUserInvitationClose = document.getElementById("known-user-invitation-close");
     const inviteModal = document.getElementById("invite-modal");
     const inviteForm = document.getElementById("invite-form");
     const inviteEmailInput = document.getElementById("invite-email-input");
@@ -632,20 +632,20 @@ end %>
       registrationConfirmationModal.hidden = true;
     };
 
-    const closeAlreadyRegisteredInvitationModal = () => {
-      if (!alreadyRegisteredInvitationModal) {
+    const closeKnownUserInvitationModal = () => {
+      if (!knownUserInvitationModal) {
         return;
       }
 
-      alreadyRegisteredInvitationModal.hidden = true;
+      knownUserInvitationModal.hidden = true;
     };
 
-    const openAlreadyRegisteredInvitationModal = () => {
-      if (!alreadyRegisteredInvitationModal) {
+    const openKnownUserInvitationModal = () => {
+      if (!knownUserInvitationModal) {
         return;
       }
 
-      alreadyRegisteredInvitationModal.hidden = false;
+      knownUserInvitationModal.hidden = false;
     };
 
     const removeInvitationTokenFromUrl = () => {
@@ -881,7 +881,7 @@ end %>
       selfRegistrationForm?.requestSubmit();
     });
     registrationConfirmationClose?.addEventListener("click", closeRegistrationConfirmationModal);
-    alreadyRegisteredInvitationClose?.addEventListener("click", closeAlreadyRegisteredInvitationModal);
+    knownUserInvitationClose?.addEventListener("click", closeKnownUserInvitationModal);
 
     inviteModalCancel?.addEventListener("click", closeInviteModal);
     inviteForm?.addEventListener("submit", (event) => {
@@ -908,9 +908,9 @@ end %>
       openInvitePreviewModal();
     }
 
-    if (alreadyRegisteredInvitationModal) {
+    if (knownUserInvitationModal) {
       removeInvitationTokenFromUrl();
-      openAlreadyRegisteredInvitationModal();
+      openKnownUserInvitationModal();
     }
 
     selfRegistrationModal?.addEventListener("click", (event) => {
@@ -943,9 +943,9 @@ end %>
       }
     });
 
-    alreadyRegisteredInvitationModal?.addEventListener("click", (event) => {
-      if (event.target === alreadyRegisteredInvitationModal) {
-        closeAlreadyRegisteredInvitationModal();
+    knownUserInvitationModal?.addEventListener("click", (event) => {
+      if (event.target === knownUserInvitationModal) {
+        closeKnownUserInvitationModal();
       }
     });
 

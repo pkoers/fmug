@@ -224,6 +224,9 @@ end %>
       <%= @invitation_token_valid ? "Token validated and still valid" : "Invalid invitation token" %>
       <% if @invitation_token_valid %>
 <%= @invited_user_exists ? "you're already a user" : "welcome new user" %>
+        <% if @invited_user_exists %>
+<%= @invited_user_registered_for_current_conference ? "you are already registered for FMUG ##{@current_conference.edition}" : "you're not registered for the upcoming FMUG" %>
+        <% end %>
       <% end %>
     </div>
   </div>

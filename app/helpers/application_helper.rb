@@ -36,4 +36,36 @@ module ApplicationHelper
       "The Chair"
     ].compact.join("\n")
   end
+
+  def invitation_email_subject(conference)
+    "Invitation to Conference #{conference.edition}"
+  end
+
+  def invitation_email_body(invitation, token:)
+    conference = invitation.conference
+    inviter_name = [ invitation.inviter.first_name, invitation.inviter.last_name ].compact.join(" ").presence || invitation.inviter.email
+    invitation_link = root_url(invitation_token: token)
+
+    [
+      "Hi #{invitation.first_name},",
+      "",
+      "#{inviter_name} invited you to join Conference #{conference.edition}.",
+      "",
+      "Conference dates: #{conference.start_date.strftime("%b %-d, %Y")} - #{conference.end_date.strftime("%b %-d, %Y")}",
+      "Location: #{conference.location}",
+      "",
+      "Invitation token: #{token}",
+      "",
+      "Use this invitation link to register:",
+      invitation_link,
+      "",
+      "This invitation expires on #{invitation.expires_at.strftime("%b %-d, %Y at %H:%M %Z")}.",
+      "It can only be used once.",
+      "",
+      "This is placeholder text for the invitation email body. We will replace this draft with the real conference details later.",
+      "",
+      "Best regards,",
+      inviter_name
+    ].join("\n")
+  end
 end

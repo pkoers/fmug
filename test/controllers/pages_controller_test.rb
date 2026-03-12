@@ -123,13 +123,28 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     get root_path(invitation_token: invitation.raw_token)
 
     assert_response :success
-    assert_includes response.body, "Token validated and still valid"
-    assert_includes response.body, "welcome new user"
-    assert_not_includes response.body, "you&#39;re already a user"
-    assert_not_includes response.body, "you are already registered for FMUG #1"
-    assert_not_includes response.body, "you&#39;re not registered for the upcoming FMUG"
-    assert_not_includes response.body, "Invite attendee"
-    assert_not_includes response.body, "Register me for the conference"
+    assert_includes response.body, "FMUG Conferences"
+    assert_includes response.body, "new-user-invitation-modal"
+    assert_includes response.body, "Complete your FMUG profile"
+    assert_includes response.body, "value=\"guest@example.com\""
+    assert_not_includes response.body, "Invalid invitation token"
+    assert_nil invitation.reload.used_at
+  end
+
+  test "new user token remains valid after landing page visit" do
+    invitation = Invitation.create!(
+      inviter: @inviter,
+      conference: @conference,
+      first_name: "Guest",
+      email: "guest@example.com"
+    )
+
+    get root_path(invitation_token: invitation.raw_token)
+    get root_path(invitation_token: invitation.raw_token)
+
+    assert_response :success
+    assert_includes response.body, "new-user-invitation-modal"
+    assert_nil invitation.reload.used_at
   end
 
   test "shows invalid message for an unknown invitation token" do

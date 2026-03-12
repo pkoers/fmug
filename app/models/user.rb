@@ -5,6 +5,6 @@ class User < ApplicationRecord
   has_many :sent_invitations, class_name: "Invitation", foreign_key: :inviter_id, dependent: :destroy
   has_many :conferences, through: :registrations
 
-  validates :email, :first_name, :last_name, :role, presence: true
+  validates :email, :first_name, :last_name, presence: true
   validates :email, uniqueness: true
 end

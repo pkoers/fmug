@@ -11,11 +11,12 @@ class PagesController < ApplicationController
     @conferences = Conference.all.order(:start_date)
     @schedules = Schedule.order(:day, :time)
     @show_known_user_invitation_popup = show_known_user_invitation_popup?
+    @show_new_user_invitation_popup = show_new_user_invitation_popup?
     @known_user_invitation_popup_message = known_user_invitation_popup_message
     consume_invitation! if @show_known_user_invitation_popup
 
     return unless @invitation_token_supplied
-    return if @show_known_user_invitation_popup
+    return if @show_known_user_invitation_popup || @show_new_user_invitation_popup
 
     @current_conference = nil
     @current_registration = nil
@@ -43,6 +44,10 @@ class PagesController < ApplicationController
 
   def show_known_user_invitation_popup?
     @invitation_token_valid && @invited_user_exists
+  end
+
+  def show_new_user_invitation_popup?
+    @invitation_token_valid && !@invited_user_exists
   end
 
   def known_user_invitation_popup_message

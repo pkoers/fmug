@@ -15,7 +15,7 @@ class RegistrationsController < ApplicationController
       return
     end
 
-    current_user.registrations.create!(
+    registration = current_user.registrations.create!(
       conference: @conference,
       attending_physically: attendance_mode == "physical",
       agenda_present: registration_params[:agenda_present],
@@ -28,6 +28,7 @@ class RegistrationsController < ApplicationController
       chair_note: registration_params[:chair_note]
     )
 
+    flash[:registration_confirmation_id] = registration.id
     redirect_to root_path, notice: "You are registered for Conference #{@conference.edition}."
   end
 

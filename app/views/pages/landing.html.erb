@@ -124,6 +124,17 @@ end %>
     resize: vertical;
   }
 
+  .registration-modal__draft {
+    margin-top: 20px;
+    border-radius: 18px;
+    background: #f5f5f4;
+    padding: 18px;
+    font-size: 1.5rem;
+    line-height: 1.7;
+    color: #292524;
+    white-space: pre-line;
+  }
+
   .invite-modal[hidden] {
     display: none;
   }
@@ -384,6 +395,21 @@ end %>
   </div>
 </div>
 
+<div id="registration-confirmation-modal" class="registration-modal" <%= "hidden" unless @registration_confirmation.present? %>>
+  <div class="registration-modal__panel" role="dialog" aria-modal="true" aria-labelledby="registration-confirmation-title">
+    <h2 id="registration-confirmation-title" class="registration-modal__title">Registration confirmation email</h2>
+    <p class="registration-modal__copy">Preview of the confirmation email that would be sent.</p>
+
+    <% if @registration_confirmation.present? %>
+      <div class="registration-modal__draft"><%= registration_confirmation_email_body(@registration_confirmation) %></div>
+    <% end %>
+
+    <div class="registration-modal__actions">
+      <button type="button" id="registration-confirmation-close" class="landing-auth__button">Close</button>
+    </div>
+  </div>
+</div>
+
 <div id="invite-modal" class="invite-modal" hidden>
   <div class="invite-modal__panel" role="dialog" aria-modal="true" aria-labelledby="invite-modal-title">
     <h2 id="invite-modal-title" class="invite-modal__title">Invite attendee</h2>
@@ -471,6 +497,8 @@ end %>
     const registrationNoteContinue = document.getElementById("registration-note-continue");
     const registrationNoteText = document.getElementById("registration-note-text");
     const chairNoteValue = document.getElementById("chair-note-value");
+    const registrationConfirmationModal = document.getElementById("registration-confirmation-modal");
+    const registrationConfirmationClose = document.getElementById("registration-confirmation-close");
     const inviteModal = document.getElementById("invite-modal");
     const inviteEmailInput = document.getElementById("invite-email-input");
     const inviteFirstNameInput = document.getElementById("invite-first-name-input");
@@ -561,6 +589,14 @@ end %>
       }
 
       registrationNoteModal.hidden = false;
+    };
+
+    const closeRegistrationConfirmationModal = () => {
+      if (!registrationConfirmationModal) {
+        return;
+      }
+
+      registrationConfirmationModal.hidden = true;
     };
 
     const closeInviteModal = () => {
@@ -792,6 +828,7 @@ ${signedInUserName}`;
       selfRegistrationReadyToSubmit = true;
       selfRegistrationForm?.requestSubmit();
     });
+    registrationConfirmationClose?.addEventListener("click", closeRegistrationConfirmationModal);
 
     inviteModalCancel?.addEventListener("click", closeInviteModal);
     inviteModalSave?.addEventListener("click", () => {
@@ -836,6 +873,12 @@ ${signedInUserName}`;
     registrationNoteModal?.addEventListener("click", (event) => {
       if (event.target === registrationNoteModal) {
         closeRegistrationNoteModal();
+      }
+    });
+
+    registrationConfirmationModal?.addEventListener("click", (event) => {
+      if (event.target === registrationConfirmationModal) {
+        closeRegistrationConfirmationModal();
       }
     });
 

@@ -59,4 +59,42 @@ class EmailDeliveryServiceTest < ActiveSupport::TestCase
 
     assert_equal "Unsupported delivery mode: :invalid", error.message
   end
+
+  test "notify can deliver through Brevo" do
+    response = { "messageId" => "<123@example.com>" }
+    captured_message = nil
+
+    with_replaced_singleton_method(BrevoEmailService, :deliver, ->(message) {
+      captured_message = message
+      response
+    }) do
+      result = EmailDeliveryService.notify(
+        to: "member@example.com",
+        subject: "FMUG update",
+        body: "Agenda changes are live.",
+        delivery: :brevo
+      )
+
+      assert_equal response, result
+    end
+
+    assert_equal [ "member@example.com" ], captured_message.to
+    assert_equal "FMUG update", captured_message.subject
+  end
+
+  private
+
+  def with_replaced_singleton_method(object, method_name, implementation)
+    singleton_class = object.singleton_class
+    original_method = singleton_class.instance_method(method_name) if singleton_class.method_defined?(method_name)
+
+    singleton_class.define_method(method_name, implementation)
+    yield
+  ensure
+    if original_method
+      singleton_class.define_method(method_name, original_method)
+    else
+      singleton_class.remove_method(method_name)
+    end
+  end
 end

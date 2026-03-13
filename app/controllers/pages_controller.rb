@@ -6,8 +6,6 @@ class PagesController < ApplicationController
     set_invited_user_state if @invitation_token_valid
     @current_conference = Conference.find_by(current: true)
     @current_registration = current_user&.registrations&.find_by(conference: @current_conference)
-    @registration_confirmation = current_user&.registrations&.find_by(id: flash[:registration_confirmation_id])
-    @invitation_email_body = flash[:invitation_email_body]
     @conferences = Conference.all.order(:start_date)
     @schedules = Schedule.order(:day, :time)
     @show_known_user_invitation_popup = show_known_user_invitation_popup?
@@ -20,8 +18,6 @@ class PagesController < ApplicationController
 
     @current_conference = nil
     @current_registration = nil
-    @registration_confirmation = nil
-    @invitation_email_body = nil
     @conferences = nil
     @schedules = nil
   end

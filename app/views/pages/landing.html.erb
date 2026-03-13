@@ -456,21 +456,6 @@ end %>
   </div>
 </div>
 
-<div id="registration-confirmation-modal" class="registration-modal" <%= "hidden" unless @registration_confirmation.present? %>>
-  <div class="registration-modal__panel" role="dialog" aria-modal="true" aria-labelledby="registration-confirmation-title">
-    <h2 id="registration-confirmation-title" class="registration-modal__title">Registration confirmation email</h2>
-    <p class="registration-modal__copy">Preview of the confirmation email that would be sent.</p>
-
-    <% if @registration_confirmation.present? %>
-      <div class="registration-modal__draft"><%= registration_confirmation_email_body(@registration_confirmation) %></div>
-    <% end %>
-
-    <div class="registration-modal__actions">
-      <button type="button" id="registration-confirmation-close" class="landing-auth__button">Close</button>
-    </div>
-  </div>
-</div>
-
 <div id="invite-modal" class="invite-modal" hidden>
   <div class="invite-modal__panel" role="dialog" aria-modal="true" aria-labelledby="invite-modal-title">
     <h2 id="invite-modal-title" class="invite-modal__title">Invite attendee</h2>
@@ -494,23 +479,6 @@ end %>
         <button type="submit" id="invite-modal-save" class="landing-auth__button">Continue</button>
       </div>
     <% end %>
-  </div>
-</div>
-
-<div id="invite-preview-modal" class="invite-modal" <%= "hidden" unless @invitation_email_body.present? %>>
-  <div class="invite-modal__panel" role="dialog" aria-modal="true" aria-labelledby="invite-preview-title">
-    <h2 id="invite-preview-title" class="invite-modal__title">Invitation email</h2>
-    <p class="invite-modal__copy">Preview of the email that would be sent.</p>
-
-    <% if @invitation_email_body.present? %>
-      <div id="invite-preview-body" class="invite-modal__draft"><%= @invitation_email_body %></div>
-    <% else %>
-      <div id="invite-preview-body" class="invite-modal__draft"></div>
-    <% end %>
-
-    <div class="invite-modal__actions">
-      <button type="button" id="invite-preview-close" class="landing-auth__button">Close</button>
-    </div>
   </div>
 </div>
 
@@ -563,8 +531,6 @@ end %>
     const registrationNoteContinue = document.getElementById("registration-note-continue");
     const registrationNoteText = document.getElementById("registration-note-text");
     const chairNoteValue = document.getElementById("chair-note-value");
-    const registrationConfirmationModal = document.getElementById("registration-confirmation-modal");
-    const registrationConfirmationClose = document.getElementById("registration-confirmation-close");
     const knownUserInvitationModal = document.getElementById("known-user-invitation-modal");
     const knownUserInvitationClose = document.getElementById("known-user-invitation-close");
     const newUserInvitationModal = document.getElementById("new-user-invitation-modal");
@@ -576,9 +542,6 @@ end %>
     const inviteModalError = document.getElementById("invite-modal-error");
     const inviteModalCancel = document.getElementById("invite-modal-cancel");
     const inviteModalSave = document.getElementById("invite-modal-save");
-    const invitePreviewModal = document.getElementById("invite-preview-modal");
-    const invitePreviewBody = document.getElementById("invite-preview-body");
-    const invitePreviewClose = document.getElementById("invite-preview-close");
     let selfRegistrationReadyToSubmit = false;
 
     const closeSelfRegistrationModal = () => {
@@ -662,14 +625,6 @@ end %>
       registrationNoteModal.hidden = false;
     };
 
-    const closeRegistrationConfirmationModal = () => {
-      if (!registrationConfirmationModal) {
-        return;
-      }
-
-      registrationConfirmationModal.hidden = true;
-    };
-
     const closeKnownUserInvitationModal = () => {
       if (!knownUserInvitationModal) {
         return;
@@ -734,22 +689,6 @@ end %>
       inviteModalError.hidden = true;
       inviteModal.hidden = false;
       inviteFirstNameInput?.focus();
-    };
-
-    const closeInvitePreviewModal = () => {
-      if (!invitePreviewModal) {
-        return;
-      }
-
-      invitePreviewModal.hidden = true;
-    };
-
-    const openInvitePreviewModal = () => {
-      if (!invitePreviewModal || !invitePreviewBody) {
-        return;
-      }
-
-      invitePreviewModal.hidden = false;
     };
 
     if (registerButton && registerSection) {
@@ -934,7 +873,6 @@ end %>
       selfRegistrationReadyToSubmit = true;
       selfRegistrationForm?.requestSubmit();
     });
-    registrationConfirmationClose?.addEventListener("click", closeRegistrationConfirmationModal);
     knownUserInvitationClose?.addEventListener("click", closeKnownUserInvitationModal);
     newUserInvitationClose?.addEventListener("click", closeNewUserInvitationModal);
 
@@ -957,12 +895,6 @@ end %>
         inviteModalError.hidden = true;
       }
     });
-    invitePreviewClose?.addEventListener("click", closeInvitePreviewModal);
-
-    if (!invitePreviewModal?.hidden) {
-      openInvitePreviewModal();
-    }
-
     if (knownUserInvitationModal || newUserInvitationModal) {
       removeInvitationTokenFromUrl();
     }

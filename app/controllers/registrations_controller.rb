@@ -28,8 +28,11 @@ class RegistrationsController < ApplicationController
       chair_note: registration_params[:chair_note]
     )
 
-    flash[:registration_confirmation_id] = registration.id
-    redirect_to root_path, notice: "You are registered for Conference #{@conference.edition}."
+    email_attributes = registration_email_attributes(registration)
+
+    EmailDeliveryService.notify(**email_attributes, delivery: :brevo)
+
+    redirect_to root_path, notice: "You are registered for Conference #{@conference.edition}. A confirmation email has been sent to #{current_user.email}."
   end
 
   def destroy
@@ -67,5 +70,16 @@ class RegistrationsController < ApplicationController
       :dietary_requirements_text,
       :chair_note
     )
+  end
+
+  def registration_email_attributes(registration)
+    {
+      to: current_user.email,
+      subject: helpers.registration_confirmation_email_subject(@conference),
+      body: helpers.registration_confirmation_email_body(registration),
+      html_body: helpers.registration_confirmation_email_html_body(registration),
+      from_name: "FMUG Chair",
+      from_email: "chair@fmug.eu"
+    }
   end
 end

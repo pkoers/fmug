@@ -1,7 +1,8 @@
 class EmailDeliveryService
   DELIVERY_METHODS = {
     now: :export_now,
-    later: :export_later
+    later: :export_later,
+    brevo: :deliver_via_brevo
   }.freeze
 
   def self.notify(...)
@@ -22,6 +23,10 @@ class EmailDeliveryService
 
   def export_later(message, export_path:)
     EmailExportJob.perform_later(message.encoded, export_path: export_path&.to_s)
+  end
+
+  def deliver_via_brevo(message, export_path:)
+    BrevoEmailService.deliver(message)
   end
 
   def delivery_method_for(delivery)

@@ -1,18 +1,14 @@
-class Invitation < ApplicationRecord
-  EXPIRATION_PERIOD = 7.days
+class LoginMagicLink < ApplicationRecord
+  EXPIRATION_PERIOD = 15.minutes
 
-  belongs_to :conference
-  belongs_to :inviter, class_name: "User"
-  has_many :magic_links, dependent: :destroy
+  belongs_to :user
 
   attr_reader :raw_token
 
-  before_validation :normalize_attributes
   before_validation :assign_token, on: :create
   before_validation :assign_expiration, on: :create
 
-  validates :email, :first_name, :token_digest, :expires_at, presence: true
-  validates :email, format: { with: URI::MailTo::EMAIL_REGEXP }
+  validates :token_digest, :expires_at, presence: true
   validates :token_digest, uniqueness: true
 
   scope :active, -> { where(used_at: nil).where("expires_at > ?", Time.current) }
@@ -38,11 +34,6 @@ class Invitation < ApplicationRecord
   end
 
   private
-
-  def normalize_attributes
-    self.first_name = first_name.to_s.strip
-    self.email = email.to_s.strip.downcase
-  end
 
   def assign_token
     return if token_digest.present?

@@ -2,7 +2,11 @@ Rails.application.routes.draw do
   resources :schedules
   resources :conferences
   resources :invitations, only: [ :create ]
+  resources :magic_links, only: [ :create ]
+  resources :login_magic_links, only: [ :create ]
   resource :registration, only: [ :create, :destroy ]
+  get "/magic-links/:token", to: "magic_links#show", as: :magic_link
+  get "/login-magic-links/:token", to: "login_magic_links#show", as: :login_magic_link
   match "/auth/:provider/callback", to: "sessions#create", via: [ :get, :post ]
   match "/auth/failure", to: "sessions#failure", via: [ :get, :post ]
   delete "/logout", to: "sessions#destroy", as: :logout

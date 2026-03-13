@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_12_202732) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_13_222500) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -89,6 +89,30 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_12_202732) do
     t.index ["token_digest"], name: "index_invitations_on_token_digest", unique: true
   end
 
+  create_table "login_magic_links", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "expires_at", null: false
+    t.string "token_digest", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "used_at"
+    t.bigint "user_id", null: false
+    t.index ["token_digest"], name: "index_login_magic_links_on_token_digest", unique: true
+    t.index ["user_id"], name: "index_login_magic_links_on_user_id"
+  end
+
+  create_table "magic_links", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "expires_at", null: false
+    t.string "first_name", null: false
+    t.bigint "invitation_id", null: false
+    t.string "last_name", null: false
+    t.string "token_digest", null: false
+    t.datetime "updated_at", null: false
+    t.datetime "used_at"
+    t.index ["invitation_id"], name: "index_magic_links_on_invitation_id"
+    t.index ["token_digest"], name: "index_magic_links_on_token_digest", unique: true
+  end
+
   create_table "registrations", force: :cascade do |t|
     t.boolean "agenda_nothing_to_present", default: false, null: false
     t.boolean "agenda_present", default: false, null: false
@@ -137,6 +161,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_12_202732) do
   add_foreign_key "identities", "users"
   add_foreign_key "invitations", "conferences"
   add_foreign_key "invitations", "users", column: "inviter_id"
+  add_foreign_key "login_magic_links", "users"
+  add_foreign_key "magic_links", "invitations"
   add_foreign_key "registrations", "conferences"
   add_foreign_key "registrations", "users"
   add_foreign_key "schedules", "conferences"

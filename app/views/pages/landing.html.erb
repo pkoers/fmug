@@ -236,10 +236,13 @@ end %>
     <% if logged_in? %>
       <span class="landing-auth__meta">Signed in as <%= current_user.email %><%= " (Admin)" if current_user.admin? %></span>
       <%= button_to "Logout", logout_path, method: :delete, class: "landing-auth__button" %>
-    <% elsif google_oauth_configured? %>
-      <%= button_to "Login with Google", "/auth/google_oauth2", method: :post, class: "landing-auth__button" %>
     <% else %>
-      <span class="landing-auth__meta">Google login is not configured yet.</span>
+      <button type="button" id="login-magic-link-open" class="landing-auth__button">Login</button>
+      <% if google_oauth_configured? %>
+        <%= button_to "Login with Google", "/auth/google_oauth2", method: :post, class: "landing-auth__button" %>
+      <% else %>
+        <span class="landing-auth__meta">Google login is not configured yet.</span>
+      <% end %>
     <% end %>
   </div>
 
@@ -280,37 +283,51 @@ end %>
   <div id="new-user-invitation-modal" class="registration-modal" hidden>
     <div class="registration-modal__panel" role="dialog" aria-modal="true" aria-labelledby="new-user-invitation-title">
       <h2 id="new-user-invitation-title" class="registration-modal__title">Complete your FMUG profile</h2>
-      <p class="registration-modal__copy">Please provide your details to prepare your user account.</p>
+      <p class="registration-modal__copy">Please provide your name to prepare your member account.</p>
+      <p class="registration-modal__copy">To finish the registration, you will receive a magic link by email on the same address where the invitation was originally sent. The link is valid for 15 minutes.</p>
 
-      <div class="mt-5 text-left">
-        <label class="invite-modal__field" for="new-user-invitation-email">
-          Email address
-          <input
-            id="new-user-invitation-email"
-            class="invite-modal__input"
-            type="email"
-            value="<%= @invitation.email %>"
-            readonly
-          />
-        </label>
+      <%= form_with scope: :magic_link, url: magic_links_path, method: :post, local: true, id: "new-user-invitation-form", class: "mt-5 text-left" do |form| %>
+        <%= form.hidden_field :invitation_token, value: params[:invitation_token] %>
 
         <label class="invite-modal__field" for="new-user-invitation-first-name">
           First name
-          <input id="new-user-invitation-first-name" class="invite-modal__input" type="text" autocomplete="given-name" />
+          <%= form.text_field :first_name, id: "new-user-invitation-first-name", class: "invite-modal__input", autocomplete: "given-name", required: true, value: @invitation.first_name %>
         </label>
 
         <label class="invite-modal__field" for="new-user-invitation-last-name">
           Last name
-          <input id="new-user-invitation-last-name" class="invite-modal__input" type="text" autocomplete="family-name" />
+          <%= form.text_field :last_name, id: "new-user-invitation-last-name", class: "invite-modal__input", autocomplete: "family-name", required: true %>
         </label>
-      </div>
 
-      <div class="registration-modal__actions">
-        <button type="button" id="new-user-invitation-close" class="landing-auth__button">Close</button>
-      </div>
+        <div class="registration-modal__actions">
+          <button type="button" id="new-user-invitation-close" class="landing-auth__button">Close</button>
+          <button type="submit" id="send-magic-link" class="landing-auth__button">Send magic link</button>
+        </div>
+      <% end %>
     </div>
   </div>
 <% end %>
+
+<div id="login-magic-link-modal" class="registration-modal" hidden>
+  <div class="registration-modal__panel" role="dialog" aria-modal="true" aria-labelledby="login-magic-link-title">
+    <h2 id="login-magic-link-title" class="registration-modal__title">Login</h2>
+    <p class="registration-modal__copy">Enter your registered email address and we will send you a magic link to log in to the FMUG Community website. The link is valid for 15 minutes.</p>
+
+    <%= form_with scope: :login_magic_link, url: login_magic_links_path, method: :post, local: true, id: "login-magic-link-form", class: "mt-5 text-left" do |form| %>
+      <label class="invite-modal__field" for="login-magic-link-email">
+        Email address
+        <%= form.email_field :email, id: "login-magic-link-email", class: "invite-modal__input", autocomplete: "email", required: true %>
+      </label>
+
+      <p id="login-magic-link-error" class="invite-modal__error" hidden>Please enter your email address before continuing.</p>
+
+      <div class="registration-modal__actions">
+        <button type="button" id="login-magic-link-close" class="landing-auth__button">Close</button>
+        <button type="submit" id="login-magic-link-submit" class="landing-auth__button">Send magic link</button>
+      </div>
+    <% end %>
+  </div>
+</div>
 
 <div id="self-registration-modal" class="registration-modal" hidden>
   <div class="registration-modal__panel" role="dialog" aria-modal="true" aria-labelledby="self-registration-title">
@@ -489,6 +506,12 @@ end %>
     const registerSection = document.getElementById("register-section");
     const registerSelfOption = document.getElementById("register-self-option");
     const inviteOtherOption = document.getElementById("invite-other-option");
+    const loginMagicLinkOpen = document.getElementById("login-magic-link-open");
+    const loginMagicLinkModal = document.getElementById("login-magic-link-modal");
+    const loginMagicLinkClose = document.getElementById("login-magic-link-close");
+    const loginMagicLinkForm = document.getElementById("login-magic-link-form");
+    const loginMagicLinkEmail = document.getElementById("login-magic-link-email");
+    const loginMagicLinkError = document.getElementById("login-magic-link-error");
     const registrationNextButton = document.getElementById("registration-next-button");
     const scheduleButton = document.getElementById("schedule-button");
     const scheduleSection = document.getElementById("schedule-section");
@@ -550,6 +573,27 @@ end %>
       }
 
       selfRegistrationModal.hidden = true;
+    };
+
+    const closeLoginMagicLinkModal = () => {
+      if (!loginMagicLinkModal) {
+        return;
+      }
+
+      loginMagicLinkModal.hidden = true;
+    };
+
+    const openLoginMagicLinkModal = () => {
+      if (!loginMagicLinkModal) {
+        return;
+      }
+
+      if (loginMagicLinkError) {
+        loginMagicLinkError.hidden = true;
+      }
+
+      loginMagicLinkModal.hidden = false;
+      loginMagicLinkEmail?.focus();
     };
 
     const openSelfRegistrationModal = () => {
@@ -714,6 +758,26 @@ end %>
         }
       });
     }
+
+    loginMagicLinkOpen?.addEventListener("click", openLoginMagicLinkModal);
+    loginMagicLinkClose?.addEventListener("click", closeLoginMagicLinkModal);
+    loginMagicLinkForm?.addEventListener("submit", (event) => {
+      const email = loginMagicLinkEmail?.value.trim();
+
+      if (email) {
+        if (loginMagicLinkError) {
+          loginMagicLinkError.hidden = true;
+        }
+
+        return;
+      }
+
+      event.preventDefault();
+
+      if (loginMagicLinkError) {
+        loginMagicLinkError.hidden = false;
+      }
+    });
 
     if (registrationNextButton && registerSelfOption) {
       registrationNextButton.addEventListener("click", () => {
@@ -946,6 +1010,12 @@ end %>
     newUserInvitationModal?.addEventListener("click", (event) => {
       if (event.target === newUserInvitationModal) {
         closeNewUserInvitationModal();
+      }
+    });
+
+    loginMagicLinkModal?.addEventListener("click", (event) => {
+      if (event.target === loginMagicLinkModal) {
+        closeLoginMagicLinkModal();
       }
     });
 

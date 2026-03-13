@@ -9,8 +9,16 @@ class EmailDeliveryService
     new.notify(...)
   end
 
-  def notify(to:, subject:, body:, delivery: :now, export_path: nil)
-    message = NotificationMailer.with(to:, subject:, body:).notify
+  def notify(to:, subject:, body:, delivery: :now, export_path: nil, html_body: nil, text_body: nil, from_email: nil, from_name: nil)
+    message = NotificationMailer.with(
+      to:,
+      subject:,
+      body:,
+      html_body:,
+      text_body:,
+      from_email:,
+      from_name:
+    ).notify
 
     send(delivery_method_for(delivery), message, export_path:)
   end

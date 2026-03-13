@@ -6,16 +6,17 @@ class InvitationsController < ApplicationController
     invitation = current_user.sent_invitations.build(invitation_params.merge(conference: @conference))
 
     if invitation.save
-      body = helpers.invitation_email_body(invitation, token: invitation.raw_token)
-
       EmailDeliveryService.notify(
         to: invitation.email,
         subject: helpers.invitation_email_subject(@conference),
-        body: body
+        body: helpers.invitation_email_body(invitation, token: invitation.raw_token),
+        html_body: helpers.invitation_email_html_body(invitation, token: invitation.raw_token),
+        from_name: "FMUG Chair",
+        from_email: "chair@fmug.eu",
+        delivery: :brevo
       )
 
-      flash[:invitation_email_body] = body
-      redirect_to root_path, notice: "Invitation prepared for #{invitation.email}."
+      redirect_to root_path, notice: "Invitation sent to #{invitation.email}."
     else
       redirect_to root_path, alert: invitation.errors.full_messages.to_sentence
     end

@@ -13,18 +13,23 @@ class InvitationsControllerTest < ActionController::TestCase
 
   test "should create an invitation for the signed-in user" do
     session[:user_id] = @user.id
+    delivery_payload = nil
 
-    assert_difference("Invitation.count", 1) do
-      post :create, params: {
-        invitation: {
-          first_name: "Guest",
-          email: "guest@example.com"
+    with_replaced_singleton_method(EmailDeliveryService, :notify, ->(**kwargs) {
+      delivery_payload = kwargs
+      { "messageId" => "<brevo@example.com>" }
+    }) do
+      assert_difference("Invitation.count", 1) do
+        post :create, params: {
+          invitation: {
+            first_name: "Guest",
+            email: "guest@example.com"
+          }
         }
-      }
+      end
     end
 
     invitation = Invitation.last
-    body = flash[:invitation_email_body]
 
     assert_equal @user, invitation.inviter
     assert_equal @conference, invitation.conference
@@ -32,13 +37,19 @@ class InvitationsControllerTest < ActionController::TestCase
     assert invitation.token_digest.present?
     assert invitation.expires_at.present?
     assert_nil invitation.used_at
-    assert_includes body, "Hi Guest,"
-    assert_includes body, "Invitation token:"
-    assert_includes body, "Use this invitation link to register:"
-    token = body[/invitation_token=([^\s]+)/, 1]
+    assert_equal "guest@example.com", delivery_payload[:to]
+    assert_equal "Invitation to Conference 1", delivery_payload[:subject]
+    assert_equal :brevo, delivery_payload[:delivery]
+    assert_equal "FMUG Chair", delivery_payload[:from_name]
+    assert_equal "chair@fmug.eu", delivery_payload[:from_email]
+    assert_includes delivery_payload[:body], "Hi Guest,"
+    assert_includes delivery_payload[:body], "Invitation token:"
+    assert_includes delivery_payload[:html_body], "<ul>"
+    token = delivery_payload[:body][/invitation_token=([^\s]+)/, 1]
     assert token.present?
     assert_equal invitation, Invitation.find_by_token(token)
     assert_redirected_to root_url
+    assert_equal "Invitation sent to guest@example.com.", flash[:notice]
   end
 
   test "should reject invalid invitations" do
@@ -53,7 +64,22 @@ class InvitationsControllerTest < ActionController::TestCase
       }
     end
 
-    assert_nil flash[:invitation_email_body]
     assert_redirected_to root_url
+  end
+
+  private
+
+  def with_replaced_singleton_method(object, method_name, implementation)
+    singleton_class = object.singleton_class
+    original_method = singleton_class.instance_method(method_name) if singleton_class.method_defined?(method_name)
+
+    singleton_class.define_method(method_name, implementation)
+    yield
+  ensure
+    if original_method
+      singleton_class.define_method(method_name, original_method)
+    else
+      singleton_class.remove_method(method_name)
+    end
   end
 end

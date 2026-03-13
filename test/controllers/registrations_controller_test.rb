@@ -13,21 +13,27 @@ class RegistrationsControllerTest < ActionController::TestCase
 
   test "should create a registration for the signed-in user" do
     session[:user_id] = @user.id
+    delivery_payload = nil
 
-    assert_difference("Registration.count", 1) do
-      post :create, params: {
-        registration: {
-          attendance_mode: "physical",
-          agenda_present: "1",
-          agenda_question: "0",
-          agenda_something_else: "1",
-          agenda_something_else_text: "Open discussion about routes",
-          agenda_nothing_to_present: "0",
-          has_dietary_requirements: "1",
-          dietary_requirements_text: "Vegetarian",
-          chair_note: "A visa letter may be needed."
+    with_replaced_singleton_method(EmailDeliveryService, :notify, ->(**kwargs) {
+      delivery_payload = kwargs
+      { "messageId" => "<brevo@example.com>" }
+    }) do
+      assert_difference("Registration.count", 1) do
+        post :create, params: {
+          registration: {
+            attendance_mode: "physical",
+            agenda_present: "1",
+            agenda_question: "0",
+            agenda_something_else: "1",
+            agenda_something_else_text: "Open discussion about routes",
+            agenda_nothing_to_present: "0",
+            has_dietary_requirements: "1",
+            dietary_requirements_text: "Vegetarian",
+            chair_note: "A visa letter may be needed."
+          }
         }
-      }
+      end
     end
 
     registration = Registration.last
@@ -40,7 +46,14 @@ class RegistrationsControllerTest < ActionController::TestCase
     assert registration.has_dietary_requirements?
     assert_equal "Vegetarian", registration.dietary_requirements_text
     assert_equal "A visa letter may be needed.", registration.chair_note
+    assert_equal "registered@example.com", delivery_payload[:to]
+    assert_equal "Registration confirmed for Conference 1", delivery_payload[:subject]
+    assert_equal :brevo, delivery_payload[:delivery]
+    assert_equal "FMUG Chair", delivery_payload[:from_name]
+    assert_equal "chair@fmug.eu", delivery_payload[:from_email]
+    assert_includes delivery_payload[:html_body], "<ul>"
     assert_redirected_to root_url
+    assert_equal "You are registered for Conference 1. A confirmation email has been sent to registered@example.com.", flash[:notice]
   end
 
   test "should reject registration without attendance mode" do
@@ -68,5 +81,21 @@ class RegistrationsControllerTest < ActionController::TestCase
 
     assert_not Registration.exists?(registration.id)
     assert_redirected_to root_url
+  end
+
+  private
+
+  def with_replaced_singleton_method(object, method_name, implementation)
+    singleton_class = object.singleton_class
+    original_method = singleton_class.instance_method(method_name) if singleton_class.method_defined?(method_name)
+
+    singleton_class.define_method(method_name, implementation)
+    yield
+  ensure
+    if original_method
+      singleton_class.define_method(method_name, original_method)
+    else
+      singleton_class.remove_method(method_name)
+    end
   end
 end

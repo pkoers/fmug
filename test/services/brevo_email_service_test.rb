@@ -3,10 +3,12 @@ require "test_helper"
 class BrevoEmailServiceTest < ActiveSupport::TestCase
   FakeResponse = Struct.new(:code, :body)
 
-  test "deliver posts the message to the Brevo API with sandbox headers" do
+  test "deliver posts the message to the Brevo API" do
     mail = NotificationMailer.with(
       to: "Member Example <member@example.com>",
       subject: "FMUG update",
+      from_name: "FMUG Chair",
+      from_email: "chair@fmug.eu",
       body: "Conference registration is open."
     ).notify
 
@@ -34,10 +36,10 @@ class BrevoEmailServiceTest < ActiveSupport::TestCase
     assert_equal "test-api-key", captured_request["api-key"]
 
     payload = JSON.parse(captured_request.body)
-    assert_equal({ "email" => ENV.fetch("MAILER_FROM_EMAIL", "noreply@fmug.local") }, payload["sender"])
-    assert_equal [ { "email" => "member@example.com" } ], payload["to"]
+    assert_equal({ "email" => "chair@fmug.eu", "name" => "FMUG Chair" }, payload["sender"])
+    assert_equal [ { "email" => "member@example.com", "name" => "Member Example" } ], payload["to"]
     assert_equal "FMUG update", payload["subject"]
-    assert_equal "drop", payload.dig("headers", "X-Sib-Sandbox")
+    assert_nil payload["headers"]
     assert_includes payload["htmlContent"], "Conference registration is open."
     assert_includes payload["textContent"], "Conference registration is open."
   end
@@ -77,6 +79,38 @@ class BrevoEmailServiceTest < ActiveSupport::TestCase
 
       assert_equal 'Brevo API request failed (status 401): {"message":"unauthorized"}', error.message
     end
+  end
+
+  test "payload_for builds the preview JSON payload" do
+    mail = NotificationMailer.with(
+      to: "member@example.com",
+      subject: "FMUG update",
+      body: "Conference registration is open.",
+      html_body: "<p>Conference registration is open.</p>",
+      from_name: "FMUG Chair",
+      from_email: "chair@fmug.eu"
+    ).notify
+
+    payload = BrevoEmailService.payload_for(mail)
+
+    assert_equal({ email: "chair@fmug.eu", name: "FMUG Chair" }, payload[:sender])
+    assert_equal [ { email: "member@example.com" } ], payload[:to]
+    assert_equal "FMUG update", payload[:subject]
+    assert_includes payload[:htmlContent], "<p>Conference registration is open.</p>"
+    assert_includes payload[:textContent], "Conference registration is open."
+    assert_nil payload[:headers]
+  end
+
+  test "payload_for includes sandbox header when explicitly configured" do
+    mail = NotificationMailer.with(
+      to: "member@example.com",
+      subject: "FMUG update",
+      body: "Conference registration is open."
+    ).notify
+
+    payload = BrevoEmailService.payload_for(mail, sandbox_mode: "drop")
+
+    assert_equal({ "X-Sib-Sandbox" => "drop" }, payload[:headers])
   end
 
   private

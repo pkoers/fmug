@@ -10,7 +10,11 @@ class BrevoEmailService
     new.deliver(...)
   end
 
-  def initialize(api_key: ENV["BREVO_API_KEY"], api_url: API_URL, sandbox_mode: ENV.fetch("BREVO_SANDBOX_MODE", "drop"))
+  def self.payload_for(message, sandbox_mode: ENV["BREVO_SANDBOX_MODE"])
+    new(sandbox_mode:).payload_for(message)
+  end
+
+  def initialize(api_key: ENV["BREVO_API_KEY"], api_url: API_URL, sandbox_mode: ENV["BREVO_SANDBOX_MODE"])
     @api_key = api_key
     @api_url = api_url
     @sandbox_mode = sandbox_mode
@@ -38,14 +42,10 @@ class BrevoEmailService
     raise Error, "Brevo API request failed (status #{response.code}): #{body}"
   end
 
-  private
-
-  attr_reader :api_key, :api_url, :sandbox_mode
-
   def payload_for(message)
     payload = {
-      sender: sender_for(message),
-      to: recipients_for(message.to),
+      sender: sender_for(message[:from], fallback: message.from),
+      to: recipients_for(message[:to], fallback: message.to),
       subject: message.subject.to_s
     }
 
@@ -55,20 +55,39 @@ class BrevoEmailService
     payload
   end
 
-  def sender_for(message)
-    address = Mail::Address.new(Array(message.from).first.to_s)
+  private
+
+  attr_reader :api_key, :api_url, :sandbox_mode
+
+  def sender_for(header, fallback:)
+    address = addresses_from_header(header).first || Mail::Address.new(Array(fallback).first.to_s)
     sender = { email: address.address }
     sender[:name] = address.display_name if address.display_name.present?
     sender
   end
 
-  def recipients_for(addresses)
-    Array(addresses).map do |value|
+  def recipients_for(header, fallback:)
+    header_addresses = addresses_from_header(header)
+    return header_addresses.map { |address| recipient_for(address) } if header_addresses.any?
+
+    Array(fallback).map do |value|
       address = Mail::Address.new(value.to_s)
-      recipient = { email: address.address }
-      recipient[:name] = address.display_name if address.display_name.present?
-      recipient
+      recipient_for(address)
     end
+  end
+
+  def recipient_for(address)
+    recipient = { email: address.address }
+    recipient[:name] = address.display_name if address.display_name.present?
+    recipient
+  end
+
+  def addresses_from_header(header)
+    return [] if header.blank?
+
+    Mail::AddressList.new(header.value.to_s).addresses
+  rescue Mail::Field::ParseError
+    []
   end
 
   def html_content_for(message)

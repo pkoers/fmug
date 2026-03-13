@@ -126,7 +126,8 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "FMUG Conferences"
     assert_includes response.body, "new-user-invitation-modal"
     assert_includes response.body, "Complete your FMUG profile"
-    assert_includes response.body, "value=\"guest@example.com\""
+    assert_includes response.body, "value=\"#{invitation.raw_token}\""
+    assert_not_includes response.body, "new-user-invitation-email"
     assert_not_includes response.body, "Invalid invitation token"
     assert_nil invitation.reload.used_at
   end

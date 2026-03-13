@@ -280,34 +280,27 @@ end %>
   <div id="new-user-invitation-modal" class="registration-modal" hidden>
     <div class="registration-modal__panel" role="dialog" aria-modal="true" aria-labelledby="new-user-invitation-title">
       <h2 id="new-user-invitation-title" class="registration-modal__title">Complete your FMUG profile</h2>
-      <p class="registration-modal__copy">Please provide your details to prepare your user account.</p>
+      <p class="registration-modal__copy">Please provide your name to prepare your member account.</p>
+      <p class="registration-modal__copy">To finish the registration, you will receive a magic link by email on the same address where the invitation was originally sent. The link is valid for 15 minutes.</p>
 
-      <div class="mt-5 text-left">
-        <label class="invite-modal__field" for="new-user-invitation-email">
-          Email address
-          <input
-            id="new-user-invitation-email"
-            class="invite-modal__input"
-            type="email"
-            value="<%= @invitation.email %>"
-            readonly
-          />
-        </label>
+      <%= form_with scope: :magic_link, url: magic_links_path, method: :post, local: true, id: "new-user-invitation-form", class: "mt-5 text-left" do |form| %>
+        <%= form.hidden_field :invitation_token, value: params[:invitation_token] %>
 
         <label class="invite-modal__field" for="new-user-invitation-first-name">
           First name
-          <input id="new-user-invitation-first-name" class="invite-modal__input" type="text" autocomplete="given-name" />
+          <%= form.text_field :first_name, id: "new-user-invitation-first-name", class: "invite-modal__input", autocomplete: "given-name", required: true, value: @invitation.first_name %>
         </label>
 
         <label class="invite-modal__field" for="new-user-invitation-last-name">
           Last name
-          <input id="new-user-invitation-last-name" class="invite-modal__input" type="text" autocomplete="family-name" />
+          <%= form.text_field :last_name, id: "new-user-invitation-last-name", class: "invite-modal__input", autocomplete: "family-name", required: true %>
         </label>
-      </div>
 
-      <div class="registration-modal__actions">
-        <button type="button" id="new-user-invitation-close" class="landing-auth__button">Close</button>
-      </div>
+        <div class="registration-modal__actions">
+          <button type="button" id="new-user-invitation-close" class="landing-auth__button">Close</button>
+          <button type="submit" id="send-magic-link" class="landing-auth__button">Send magic link</button>
+        </div>
+      <% end %>
     </div>
   </div>
 <% end %>

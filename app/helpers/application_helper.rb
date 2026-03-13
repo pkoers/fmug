@@ -112,4 +112,38 @@ module ApplicationHelper
       content_tag(:p, inviter_name)
     ])
   end
+
+  def magic_link_email_subject
+    "Your FMUG magic link"
+  end
+
+  def magic_link_email_body(magic_link)
+    [
+      "Hi #{magic_link.first_name},",
+      "",
+      "Your FMUG magic link is ready.",
+      "",
+      "Use this link within 15 minutes to activate your account and sign in:",
+      magic_link_url(magic_link.raw_token),
+      "",
+      "After you click it, your invitation will be completed and you will be signed in.",
+      "",
+      "Kind regards,",
+      "FMUG Chair"
+    ].join("\n")
+  end
+
+  def magic_link_email_html_body(magic_link)
+    link = magic_link_url(magic_link.raw_token)
+
+    safe_join([
+      content_tag(:p, "Hi #{magic_link.first_name},"),
+      content_tag(:p, "Your FMUG magic link is ready."),
+      content_tag(:p, "Use this link within 15 minutes to activate your account and sign in:"),
+      content_tag(:p, link_to(link, link)),
+      content_tag(:p, "After you click it, your invitation will be completed and you will be signed in."),
+      content_tag(:p, "Kind regards,"),
+      content_tag(:p, "FMUG Chair")
+    ])
+  end
 end

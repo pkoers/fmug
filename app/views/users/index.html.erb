@@ -7,24 +7,34 @@
   </div>
 
   <div class="w-full max-w-2xl overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm">
-    <ul class="divide-y divide-stone-200">
+    <ul class="bg-stone-50 px-6 py-8">
       <% @users.each do |user| %>
-        <li class="px-6 py-5 text-center text-2xl text-stone-800">
-          <span>
-            <%= [user.first_name, user.last_name].join(" ") %><%= " (Admin)" if user.admin? %>
-          </span>
-          <% if current_user.admin? %>
-            <span class="ml-3 text-xl text-stone-500"><%= user.email %></span>
-            <span class="ml-4 inline-flex align-middle">
-              <% if user == current_user %>
-                <button type="button" class="rounded-full border border-stone-300 bg-stone-100 px-4 py-2 text-base font-medium text-stone-500" disabled>
-                  Admin On
-                </button>
-              <% else %>
-                <%= button_to(user.admin? ? "Admin On" : "Admin Off", admin_user_path(user), method: :patch, params: { admin: !user.admin? }, class: "rounded-full border border-stone-300 bg-white px-4 py-2 text-base font-medium text-stone-700 transition hover:bg-stone-100") %>
+        <% avatar_seed = ERB::Util.url_encode("#{user.first_name}-#{user.last_name}-#{user.id}") %>
+        <li class="mb-8 last:mb-0">
+          <div class="flex w-full flex-col items-center gap-5 rounded-3xl bg-white px-6 pt-16 pb-14 text-center text-stone-800 shadow-sm ring-1 ring-stone-200">
+            <%= image_tag "https://robohash.org/#{avatar_seed}.png?set=set4&size=180x180", alt: "#{user.first_name} #{user.last_name} avatar", class: "h-36 w-36 rounded-full border border-stone-200 object-cover shadow-sm" %>
+
+            <div class="text-2xl">
+              <span>
+                <%= [user.first_name, user.last_name].join(" ") %><%= " (Admin)" if user.admin? %>
+              </span>
+              <% if current_user.admin? %>
+                <span class="ml-3 text-xl text-stone-500"><%= user.email %></span>
               <% end %>
-            </span>
-          <% end %>
+            </div>
+
+            <% if current_user.admin? %>
+              <div>
+                <% if user == current_user %>
+                  <button type="button" class="rounded-full border border-stone-300 bg-stone-100 px-4 py-2 text-base font-medium text-stone-500" disabled>
+                    Admin On
+                  </button>
+                <% else %>
+                  <%= button_to(user.admin? ? "Admin On" : "Admin Off", admin_user_path(user), method: :patch, params: { admin: !user.admin? }, class: "rounded-full border border-stone-300 bg-white px-4 py-2 text-base font-medium text-stone-700 transition hover:bg-stone-100") %>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
         </li>
       <% end %>
     </ul>

@@ -24,14 +24,22 @@
             </div>
 
             <% if current_user.admin? %>
-              <div>
+              <div class="flex flex-wrap items-center justify-center gap-3">
                 <% if user == current_user %>
                   <button type="button" class="rounded-full border border-stone-300 bg-stone-100 px-4 py-2 text-base font-medium text-stone-500" disabled>
                     Admin On
                   </button>
+                  <button type="button" class="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-base font-medium text-red-300" disabled>
+                    Delete
+                  </button>
                 <% else %>
                   <%= button_to(user.admin? ? "Admin On" : "Admin Off", admin_user_path(user), method: :patch, params: { admin: !user.admin? }, class: "rounded-full border border-stone-300 bg-white px-4 py-2 text-base font-medium text-stone-700 transition hover:bg-stone-100") %>
+                  <%= button_to "Delete", user_path(user), method: :delete, form: { onsubmit: "return confirm('Are you sure you want to delete this account?');" }, class: "rounded-full border border-red-300 bg-white px-4 py-2 text-base font-medium text-red-700 transition hover:bg-red-50" %>
                 <% end %>
+              </div>
+            <% elsif user == current_user %>
+              <div>
+                <%= button_to "Delete My Account", user_path(user), method: :delete, form: { onsubmit: "return confirm('Are you sure you want to delete your account?');" }, class: "rounded-full border border-red-300 bg-white px-4 py-2 text-base font-medium text-red-700 transition hover:bg-red-50" %>
               </div>
             <% end %>
           </div>

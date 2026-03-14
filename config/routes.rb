@@ -1,7 +1,7 @@
 Rails.application.routes.draw do
   resources :schedules
   resources :conferences
-  resources :users, only: [ :index ] do
+  resources :users, only: [ :index, :destroy ] do
     patch :admin, on: :member
   end
   resources :invitations, only: [ :create ]

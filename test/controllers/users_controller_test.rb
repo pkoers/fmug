@@ -50,6 +50,7 @@ class UsersControllerTest < ActionController::TestCase
     assert_includes response.body, "Grace Hopper (Admin)"
     assert_includes response.body, "other@example.com"
     assert_includes response.body, "Admin On"
+    assert_includes response.body, "Delete"
   end
 
   test "admins can grant admin rights to another user" do
@@ -93,6 +94,54 @@ class UsersControllerTest < ActionController::TestCase
     assert_redirected_to root_path
     assert_equal "You are not authorized to perform that action.", flash[:alert]
     assert_not @other_member.reload.admin?
+  end
+
+  test "members can delete their own account" do
+    session[:user_id] = @member.id
+
+    assert_difference("User.count", -1) do
+      delete :destroy, params: { id: @member.id }
+    end
+
+    assert_redirected_to root_path
+    assert_equal "Your account has been deleted.", flash[:notice]
+    assert_nil session[:user_id]
+  end
+
+  test "members cannot delete another account" do
+    session[:user_id] = @member.id
+
+    assert_no_difference("User.count") do
+      delete :destroy, params: { id: @other_member.id }
+    end
+
+    assert_redirected_to users_path
+    assert_equal "You can only delete your own account.", flash[:alert]
+  end
+
+  test "admins cannot delete their own account" do
+    @member.update!(admin: true)
+    session[:user_id] = @member.id
+
+    assert_no_difference("User.count") do
+      delete :destroy, params: { id: @member.id }
+    end
+
+    assert_redirected_to users_path
+    assert_equal "Admins cannot delete their own account.", flash[:alert]
+    assert @member.reload.admin?
+  end
+
+  test "admins can delete another account" do
+    @member.update!(admin: true)
+    session[:user_id] = @member.id
+
+    assert_difference("User.count", -1) do
+      delete :destroy, params: { id: @other_member.id }
+    end
+
+    assert_redirected_to users_path
+    assert_equal "Grace Hopper has been deleted.", flash[:notice]
   end
 end
 

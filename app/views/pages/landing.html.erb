@@ -7,9 +7,18 @@ end %>
 <style>
   .landing-auth {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .landing-auth__group {
+    display: flex;
     align-items: center;
     gap: 12px;
+    flex-wrap: wrap;
   }
 
   .landing-auth__button {
@@ -233,17 +242,25 @@ end %>
 <% else %>
 <div class="flex w-full flex-col space-y-8">
   <div class="landing-auth">
-    <% if logged_in? %>
-      <span class="landing-auth__meta">Signed in as <%= current_user.email %><%= " (Admin)" if current_user.admin? %></span>
-      <%= button_to "Logout", logout_path, method: :delete, class: "landing-auth__button" %>
-    <% else %>
-      <button type="button" id="login-magic-link-open" class="landing-auth__button">Login</button>
-      <% if google_oauth_configured? %>
-        <%= button_to "Login with Google", "/auth/google_oauth2", method: :post, class: "landing-auth__button" %>
-      <% else %>
-        <span class="landing-auth__meta">Google login is not configured yet.</span>
+    <div class="landing-auth__group">
+      <% if logged_in? %>
+        <%= link_to "Members", users_path, class: "landing-auth__button" %>
       <% end %>
-    <% end %>
+    </div>
+
+    <div class="landing-auth__group">
+      <% if logged_in? %>
+        <span class="landing-auth__meta">Signed in as <%= current_user.email %><%= " (Admin)" if current_user.admin? %></span>
+        <%= button_to "Logout", logout_path, method: :delete, class: "landing-auth__button" %>
+      <% else %>
+        <button type="button" id="login-magic-link-open" class="landing-auth__button">Login</button>
+        <% if google_oauth_configured? %>
+          <%= button_to "Login with Google", "/auth/google_oauth2", method: :post, class: "landing-auth__button" %>
+        <% else %>
+          <span class="landing-auth__meta">Google login is not configured yet.</span>
+        <% end %>
+      <% end %>
+    </div>
   </div>
 
   <div class="flex w-full justify-center">

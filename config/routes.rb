@@ -1,6 +1,9 @@
 Rails.application.routes.draw do
   resources :schedules
   resources :conferences
+  resources :users, only: [ :index ] do
+    patch :admin, on: :member
+  end
   resources :invitations, only: [ :create ]
   resources :magic_links, only: [ :create ]
   resources :login_magic_links, only: [ :create ]

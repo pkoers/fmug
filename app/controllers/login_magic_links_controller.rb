@@ -14,8 +14,8 @@ class LoginMagicLinksController < ApplicationController
     EmailDeliveryService.notify(
       to: user.email,
       subject: helpers.login_magic_link_email_subject,
-      body: helpers.login_magic_link_email_body(login_magic_link),
-      html_body: helpers.login_magic_link_email_html_body(login_magic_link),
+      body: helpers.login_magic_link_email_body(login_magic_link, invitation_token: invitation_token_for(user)),
+      html_body: helpers.login_magic_link_email_html_body(login_magic_link, invitation_token: invitation_token_for(user)),
       from_name: "FMUG Chair",
       from_email: "chair@fmug.eu",
       delivery: :brevo
@@ -33,6 +33,7 @@ class LoginMagicLinksController < ApplicationController
     end
 
     login_magic_link.mark_as_used!
+    consume_invitation_for(login_magic_link.user)
     session[:user_id] = login_magic_link.user.id
 
     redirect_to root_path, notice: "Signed in successfully."
@@ -41,7 +42,24 @@ class LoginMagicLinksController < ApplicationController
   private
 
   def login_magic_link_params
-    params.require(:login_magic_link).permit(:email)
+    params.require(:login_magic_link).permit(:email, :invitation_token)
+  end
+
+  def invitation_token_for(user)
+    invitation = invitation_from_token
+    invitation&.email == user.email ? login_magic_link_params[:invitation_token] : nil
+  end
+
+  def consume_invitation_for(user)
+    invitation = invitation_from_token
+    return unless invitation&.email == user.email
+
+    invitation.mark_as_used!
+  end
+
+  def invitation_from_token
+    token = params[:invitation_token] || params.dig(:login_magic_link, :invitation_token)
+    @invitation_from_token ||= Invitation.find_by_token(token) if token.present?
   end
 
   def redirect_if_logged_in

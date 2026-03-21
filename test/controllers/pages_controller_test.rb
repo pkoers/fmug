@@ -37,10 +37,10 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "FMUG Conferences"
     assert_includes response.body, "You are already registered for FMUG 1"
     assert_includes response.body, "known-user-invitation-modal"
-    assert invitation.reload.used_at.present?
+    assert_nil invitation.reload.used_at
   end
 
-  test "consumed token becomes invalid after registered user visit" do
+  test "existing registered user invitation remains valid after landing page visit" do
     user = User.create!(
       email: "guest@example.com",
       first_name: "Existing",
@@ -64,7 +64,8 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     get root_path(invitation_token: invitation.raw_token)
 
     assert_response :success
-    assert_includes response.body, "Invalid invitation token"
+    assert_includes response.body, "known-user-invitation-modal"
+    assert_nil invitation.reload.used_at
   end
 
   test "shows success message for a valid invitation token when invited email belongs to an existing unregistered user" do
@@ -88,10 +89,10 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Welcome back #{invitation_user.first_name}, you are not yet registered for the upcoming FMUG"
     assert_includes response.body, "known-user-invitation-modal"
     assert_not_includes response.body, "Token validated and still valid"
-    assert invitation.reload.used_at.present?
+    assert_nil invitation.reload.used_at
   end
 
-  test "consumed token becomes invalid after unregistered known user visit" do
+  test "existing unregistered user invitation remains valid after landing page visit" do
     User.create!(
       email: "guest@example.com",
       first_name: "Existing",
@@ -109,7 +110,8 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     get root_path(invitation_token: invitation.raw_token)
 
     assert_response :success
-    assert_includes response.body, "Invalid invitation token"
+    assert_includes response.body, "known-user-invitation-modal"
+    assert_nil invitation.reload.used_at
   end
 
   test "shows success message for a valid invitation token when invited email is new" do

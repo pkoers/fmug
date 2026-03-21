@@ -335,6 +335,7 @@ end %>
     <p class="registration-modal__copy">Enter your registered email address and we will send you a magic link to log in to the FMUG Community website. The link is valid for 15 minutes.</p>
 
     <%= form_with scope: :login_magic_link, url: login_magic_links_path, method: :post, local: true, id: "login-magic-link-form", class: "mt-5 text-left" do |form| %>
+      <%= form.hidden_field :invitation_token, value: params[:invitation_token] if @show_known_user_invitation_popup %>
       <label class="invite-modal__field" for="login-magic-link-email">
         Email address
         <%= form.email_field :email, id: "login-magic-link-email", class: "invite-modal__input", autocomplete: "email", required: true %>

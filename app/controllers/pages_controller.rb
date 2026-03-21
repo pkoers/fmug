@@ -11,7 +11,6 @@ class PagesController < ApplicationController
     @show_known_user_invitation_popup = show_known_user_invitation_popup?
     @show_new_user_invitation_popup = show_new_user_invitation_popup?
     @known_user_invitation_popup_message = known_user_invitation_popup_message
-    consume_invitation! if @show_known_user_invitation_popup
 
     return unless @invitation_token_supplied
     return if @show_known_user_invitation_popup || @show_new_user_invitation_popup
@@ -54,11 +53,5 @@ class PagesController < ApplicationController
     else
       "Welcome back #{@invited_user.first_name}, you are not yet registered for the upcoming FMUG"
     end
-  end
-
-  def consume_invitation!
-    return unless @invitation&.used_at.nil?
-
-    @invitation.mark_as_used!
   end
 end

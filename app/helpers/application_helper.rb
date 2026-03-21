@@ -151,12 +151,12 @@ module ApplicationHelper
     "Your FMUG login link"
   end
 
-  def login_magic_link_email_body(login_magic_link)
+  def login_magic_link_email_body(login_magic_link, invitation_token: nil)
     [
       "Hi #{login_magic_link.user.first_name},",
       "",
       "Use this link within 15 minutes to log in to the FMUG Community website:",
-      login_magic_link_url(login_magic_link.raw_token),
+      login_magic_link_url(login_magic_link.raw_token, invitation_token:),
       "",
       "If you did not request this email, you can ignore it.",
       "",
@@ -165,8 +165,8 @@ module ApplicationHelper
     ].join("\n")
   end
 
-  def login_magic_link_email_html_body(login_magic_link)
-    link = login_magic_link_url(login_magic_link.raw_token)
+  def login_magic_link_email_html_body(login_magic_link, invitation_token: nil)
+    link = login_magic_link_url(login_magic_link.raw_token, invitation_token:)
 
     safe_join([
       content_tag(:p, "Hi #{login_magic_link.user.first_name},"),

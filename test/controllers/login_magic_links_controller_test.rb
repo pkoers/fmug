@@ -8,6 +8,7 @@ class LoginMagicLinksControllerTest < ActionDispatch::IntegrationTest
       last_name: "Example",
       role: "Member"
     )
+    @conference = conferences(:one)
   end
 
   test "creates and emails a login magic link for an existing user" do
@@ -39,6 +40,38 @@ class LoginMagicLinksControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Signed in as member@example.com"
     assert_equal @user.id, session[:user_id]
     assert login_magic_link.reload.used_at.present?
+  end
+
+  test "consumes a matching invitation after login magic link proves email ownership" do
+    invitation = Invitation.create!(
+      inviter: @user,
+      conference: @conference,
+      first_name: "Member",
+      email: @user.email
+    )
+    delivery_payload = nil
+
+    with_replaced_singleton_method(EmailDeliveryService, :notify, ->(**kwargs) {
+      delivery_payload = kwargs
+      { "messageId" => "<brevo@example.com>" }
+    }) do
+      post login_magic_links_path, params: {
+        login_magic_link: {
+          email: @user.email,
+          invitation_token: invitation.raw_token
+        }
+      }
+    end
+
+    token = delivery_payload[:body][/login-magic-links\/([^\s?]+)/, 1]
+    assert token.present?
+    assert_includes delivery_payload[:body], "invitation_token=#{invitation.raw_token}"
+    assert_nil invitation.reload.used_at
+
+    get login_magic_link_path(token), params: { invitation_token: invitation.raw_token }
+
+    assert_redirected_to root_url
+    assert invitation.reload.used_at.present?
   end
 
   test "renders invalid page for expired login magic links" do

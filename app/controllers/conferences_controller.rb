@@ -1,4 +1,5 @@
 class ConferencesController < ApplicationController
+  before_action :require_admin
   before_action :set_conference, only: %i[ show edit update destroy ]
 
   # GET /conferences or /conferences.json

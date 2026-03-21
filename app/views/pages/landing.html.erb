@@ -245,6 +245,9 @@ end %>
     <div class="landing-auth__group">
       <% if logged_in? %>
         <%= link_to "Members", users_path, class: "landing-auth__button" %>
+        <% if current_user.admin? %>
+          <%= link_to "Conference Admin", conferences_path, class: "landing-auth__button" %>
+        <% end %>
       <% end %>
     </div>
 

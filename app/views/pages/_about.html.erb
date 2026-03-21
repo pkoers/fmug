@@ -1,23 +1,24 @@
-<div class="flex flex-col items-center">
-    <h1 class="text-3xl font-bold mb-4">About Section</h1>
-    <p class="text-lg">This is the about page content which is rendered.</p>
+<section class="landing-copy">
+  <div>
+    <%= render_markdown_content("about.md") %>
+  </div>
 
-    <div class="flex flex-col gap-4">
-      <div class="flex items-center gap-4">
-        <sl-avatar style="--size: 6rem;"
-          image="https://images.unsplash.com/photo-1529778873920-4da4926a72c2?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80"
-          label="Avatar of a gray tabby kitten looking down">
-        </sl-avatar>
-        <span class="text-xl font-medium">Chair</span>
-      </div>
+  <div class="mt-10 flex flex-col items-center gap-4">
+    <div class="grid w-full max-w-sm grid-cols-[6rem_1fr] items-center justify-center gap-4">
+      <sl-avatar style="--size: 6rem;"
+        image="https://images.unsplash.com/photo-1529778873920-4da4926a72c2?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80"
+        label="Avatar of a gray tabby kitten looking down">
+      </sl-avatar>
+      <span class="text-left text-xl font-medium text-stone-800">Chair</span>
+    </div>
 
-      <div class="flex items-center gap-4">
-        <sl-avatar style="--size: 6rem;"
-          image="https://images.unsplash.com/photo-1591871937573-74dbba515c4c?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80"
-          label="Avatar of a white and grey kitten on grey textile"
-          loading="lazy">
-        </sl-avatar>
-        <span class="text-xl font-medium">Vice-Chair</span>
-      </div>
+    <div class="grid w-full max-w-sm grid-cols-[6rem_1fr] items-center justify-center gap-4">
+      <sl-avatar style="--size: 6rem;"
+        image="https://images.unsplash.com/photo-1591871937573-74dbba515c4c?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80"
+        label="Avatar of a white and grey kitten on grey textile"
+        loading="lazy">
+      </sl-avatar>
+      <span class="text-left text-xl font-medium text-stone-800">Vice-Chair</span>
     </div>
   </div>
+</section>

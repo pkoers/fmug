@@ -1,4 +1,5 @@
 class SchedulesController < ApplicationController
+  before_action :require_admin, except: :agenda
   before_action :set_schedule, only: %i[ show edit update destroy ]
 
   # GET /schedules or /schedules.json

@@ -197,4 +197,33 @@ class LandingMembersNavigationTest < ActionController::TestCase
     assert_includes response.body, ">Conference Admin<"
     assert_includes response.body, conferences_path
   end
+
+  test "shows the agenda admin button on the landing page only to admins" do
+    member = User.create!(
+      email: "member@example.com",
+      first_name: "Ada",
+      last_name: "Lovelace",
+      role: "Member"
+    )
+    admin = User.create!(
+      email: "admin@example.com",
+      first_name: "Grace",
+      last_name: "Hopper",
+      role: "Member",
+      admin: true
+    )
+
+    session[:user_id] = member.id
+    get :landing
+
+    assert_response :success
+    assert_not_includes response.body, ">Agenda Admin<"
+
+    session[:user_id] = admin.id
+    get :landing
+
+    assert_response :success
+    assert_includes response.body, ">Agenda Admin<"
+    assert_includes response.body, schedules_path
+  end
 end

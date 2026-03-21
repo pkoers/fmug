@@ -66,6 +66,43 @@ class RegistrationsControllerTest < ActionController::TestCase
     assert_redirected_to root_url
   end
 
+  test "should reject registration without an agenda selection instead of crashing" do
+    session[:user_id] = @user.id
+
+    assert_no_difference("Registration.count") do
+      post :create, params: {
+        registration: {
+          attendance_mode: "physical",
+          agenda_present: "0",
+          agenda_question: "0",
+          agenda_something_else: "0",
+          agenda_nothing_to_present: "0"
+        }
+      }
+    end
+
+    assert_redirected_to root_url
+    assert_equal "Select at least one agenda option", flash[:alert]
+  end
+
+  test "should reject registration with missing dietary details instead of crashing" do
+    session[:user_id] = @user.id
+
+    assert_no_difference("Registration.count") do
+      post :create, params: {
+        registration: {
+          attendance_mode: "physical",
+          agenda_present: "1",
+          has_dietary_requirements: "1",
+          dietary_requirements_text: "Please specify"
+        }
+      }
+    end
+
+    assert_redirected_to root_url
+    assert_equal "Dietary requirements text must be provided when dietary requirements are selected", flash[:alert]
+  end
+
   test "should remove an existing registration" do
     session[:user_id] = @user.id
     registration = Registration.create!(

@@ -15,7 +15,7 @@ class RegistrationsController < ApplicationController
       return
     end
 
-    registration = current_user.registrations.create!(
+    registration = current_user.registrations.build(
       conference: @conference,
       attending_physically: attendance_mode == "physical",
       agenda_present: registration_params[:agenda_present],
@@ -27,6 +27,11 @@ class RegistrationsController < ApplicationController
       dietary_requirements_text: registration_params[:dietary_requirements_text],
       chair_note: registration_params[:chair_note]
     )
+
+    unless registration.save
+      redirect_to root_path, alert: registration.errors.full_messages.to_sentence
+      return
+    end
 
     email_attributes = registration_email_attributes(registration)
 

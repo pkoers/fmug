@@ -12,7 +12,12 @@
         <%= conference.end_date.strftime("%b %-d, %Y") %><br>
         <strong>Location:</strong> <%= conference.location %><br>
       </p>
-      <p class="text-lg">Here you can add more (rendered) information about the upcoming conference.</p>
+      <% conference_markdown = render_conference_markdown(conference) %>
+      <% if conference_markdown.present? %>
+        <div class="landing-copy mt-4">
+          <%= conference_markdown %>
+        </div>
+      <% end %>
       <div class="flex justify-center space-x-4 mt-6">
         <sl-button pill id="register-button" type="button">Register</sl-button>
         <sl-button pill id="schedule-button" type="button" <%= "disabled" unless schedules_present %>>Agenda</sl-button>

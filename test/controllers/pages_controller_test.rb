@@ -175,4 +175,20 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_not_includes response.body, "Invite attendee"
     assert_not_includes response.body, "Register me for the conference"
   end
+
+  test "shows the footer privacy link on the landing page" do
+    get root_path
+
+    assert_response :success
+    assert_includes response.body, "Patrick Koers"
+    assert_includes response.body, privacy_path
+    assert_includes response.body, "Privacy"
+  end
+
+  test "renders the privacy page from markdown content" do
+    get privacy_path
+
+    assert_response :success
+    assert_includes response.body, "This is a placeholder privacy statement."
+  end
 end

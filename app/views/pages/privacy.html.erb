@@ -1,7 +1,210 @@
 <% content_for :title, "Privacy" %>
 
-<div class="mx-auto w-full max-w-4xl px-6 py-10">
-  <div class="landing-copy">
-    <%= render_markdown_content("privacy.md") %>
+<style>
+  .privacy-page {
+    width: 100%;
+    background:
+      radial-gradient(circle at top left, rgba(191, 219, 254, 0.28), transparent 30%),
+      linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+    color: #1f2937;
+  }
+
+  .privacy-shell {
+    width: min(100%, 980px);
+    margin: 0 auto;
+    padding: 32px 20px 72px;
+  }
+
+  .privacy-hero {
+    margin-bottom: 24px;
+  }
+
+  .privacy-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #475569;
+  }
+
+  .privacy-badge {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #cbd5e1;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.82);
+    padding: 6px 12px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #0f172a;
+  }
+
+  .privacy-hero h1 {
+    margin: 0;
+    font-size: clamp(3rem, 5vw, 4.6rem);
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    color: #0f172a;
+  }
+
+  .privacy-intro {
+    max-width: 720px;
+    margin-top: 14px;
+    font-size: 1.8rem;
+    line-height: 1.65;
+    color: #475569;
+  }
+
+  .privacy-meta {
+    margin-top: 16px;
+    font-size: 1.4rem;
+    line-height: 1.6;
+    color: #64748b;
+  }
+
+  .privacy-article {
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow:
+      0 24px 60px rgba(15, 23, 42, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    padding: clamp(24px, 4vw, 48px);
+    backdrop-filter: blur(10px);
+  }
+
+  .privacy-article h1,
+  .privacy-article h2,
+  .privacy-article h3,
+  .privacy-article h4,
+  .privacy-article h5,
+  .privacy-article h6 {
+    margin: 0;
+    color: #0f172a;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .privacy-article h1 {
+    margin-bottom: 18px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: clamp(3.2rem, 4vw, 4.2rem);
+    line-height: 1.12;
+  }
+
+  .privacy-article h2 {
+    margin-top: 42px;
+    margin-bottom: 16px;
+    padding-top: 10px;
+    border-top: 1px solid #e2e8f0;
+    font-size: 2.5rem;
+    line-height: 1.2;
+  }
+
+  .privacy-article h3 {
+    margin-top: 28px;
+    margin-bottom: 12px;
+    font-size: 2rem;
+    line-height: 1.3;
+  }
+
+  .privacy-article p,
+  .privacy-article li,
+  .privacy-article blockquote {
+    font-size: 1.7rem;
+    line-height: 1.75;
+    color: #334155;
+  }
+
+  .privacy-article p,
+  .privacy-article ul,
+  .privacy-article ol,
+  .privacy-article blockquote,
+  .privacy-article pre {
+    margin: 0 0 18px;
+  }
+
+  .privacy-article ul,
+  .privacy-article ol {
+    padding-left: 24px;
+  }
+
+  .privacy-article li + li {
+    margin-top: 8px;
+  }
+
+  .privacy-article a {
+    color: #0969da;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .privacy-article a:hover {
+    text-decoration: underline;
+  }
+
+  .privacy-article strong {
+    color: #0f172a;
+    font-weight: 700;
+  }
+
+  .privacy-article code {
+    border: 1px solid #dbe3ee;
+    border-radius: 8px;
+    background: #f8fafc;
+    padding: 0.18em 0.42em;
+    font-size: 0.9em;
+    color: #0f172a;
+  }
+
+  .privacy-article blockquote {
+    border-left: 4px solid #bfdbfe;
+    margin-left: 0;
+    padding: 8px 0 8px 18px;
+    color: #475569;
+  }
+
+  @media (max-width: 640px) {
+    .privacy-shell {
+      padding: 24px 14px 48px;
+    }
+
+    .privacy-article {
+      border-radius: 18px;
+      padding: 22px 18px 28px;
+    }
+
+    .privacy-article p,
+    .privacy-article li,
+    .privacy-article blockquote {
+      font-size: 1.6rem;
+      line-height: 1.7;
+    }
+  }
+</style>
+
+<div class="privacy-page">
+  <div class="privacy-shell">
+    <header class="privacy-hero">
+      <div class="privacy-eyebrow">
+        FMUG Policy
+        <span class="privacy-badge">Draft</span>
+      </div>
+      <h1>Privacy Statement</h1>
+      <p class="privacy-intro">
+        This page is presented as a formal policy document. Operational details that are still being finalized remain clearly marked in the draft text below.
+      </p>
+      <p class="privacy-meta">Last updated: March 24, 2026</p>
+    </header>
+
+    <div class="privacy-article">
+      <%= render_markdown_content("privacy.md") %>
+    </div>
   </div>
 </div>

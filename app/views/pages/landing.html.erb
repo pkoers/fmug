@@ -591,6 +591,8 @@ end %>
     const registrationNextButton = document.getElementById("registration-next-button");
     const scheduleButton = document.getElementById("schedule-button");
     const scheduleSection = document.getElementById("schedule-section");
+    const moreInfoButton = document.getElementById("more-info-button");
+    const moreInfoSection = document.getElementById("more-info-section");
     const selfRegistrationModal = document.getElementById("self-registration-modal");
     const selfRegistrationCancel = document.getElementById("self-registration-cancel");
     const selfRegistrationRemoveCancel = document.getElementById("self-registration-remove-cancel");
@@ -831,6 +833,21 @@ end %>
         } else {
           scheduleSection.style.display = "none";
           scheduleButton.classList.remove("is-active");
+        }
+      });
+    }
+
+    if (moreInfoButton && moreInfoSection && !moreInfoButton.hasAttribute("disabled")) {
+      moreInfoButton.addEventListener("click", () => {
+        const isHidden = moreInfoSection.style.display === "none";
+
+        if (isHidden) {
+          moreInfoSection.style.display = "block";
+          moreInfoButton.classList.add("is-active");
+          moreInfoSection.scrollIntoView({ behavior: "smooth" });
+        } else {
+          moreInfoSection.style.display = "none";
+          moreInfoButton.classList.remove("is-active");
         }
       });
     }

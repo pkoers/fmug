@@ -1,6 +1,7 @@
 <% conference = @current_conference %>
 <% schedules_present = defined?(@schedules) && @schedules.present? %>
 <% registration_name = logged_in? ? [current_user.first_name, current_user.last_name].compact.join(" ").presence : nil %>
+<% more_info_markdown = render_markdown_content("more-info.md") %>
 <% if conference %>
   <div class="mb-20 flex flex-col items-center">
       <h1 class="text-2xl font-bold mb-4">Upcoming Conference <%= conference.edition %></h1>
@@ -21,8 +22,14 @@
       <div class="flex justify-center space-x-4 mt-6">
         <sl-button pill id="register-button" type="button">Register</sl-button>
         <sl-button pill id="schedule-button" type="button" <%= "disabled" unless schedules_present %>>Agenda</sl-button>
-        <sl-button pill disabled>More information</sl-button>
+        <sl-button pill id="more-info-button" type="button" <%= "disabled" unless more_info_markdown.present? %>>More information</sl-button>
       </div>
+
+      <% if more_info_markdown.present? %>
+        <div id="more-info-section" class="landing-copy mt-8" style="display: none;">
+          <%= more_info_markdown %>
+        </div>
+      <% end %>
 
       <div id="register-section" class="hidden w-full max-w-xl rounded-2xl border border-stone-200 bg-white px-6 py-5 text-center shadow-sm" style="margin-top: 24px;">
         <p class="text-lg font-semibold uppercase tracking-[0.18em] text-stone-500">Registration</p>

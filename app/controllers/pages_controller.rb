@@ -21,6 +21,9 @@ class PagesController < ApplicationController
     @schedules = nil
   end
 
+  def privacy
+  end
+
   private
 
   def find_valid_invitation(token)

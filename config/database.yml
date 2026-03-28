@@ -16,7 +16,7 @@ default: &default
   adapter: postgresql
   encoding: unicode
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  host: localhost
+  host: /var/run/postgresql
 
 development:
   <<: *default
@@ -31,7 +31,22 @@ test:
   password: postgres
 
 production:
-  <<: *default
-  database: fmug_production
-  username: fmug
-  password: <%= ENV["FMUG_DATABASE_PASSWORD"] %>
+  primary: &primary_production
+    <<: *default
+    database: fmug_production
+    username: fmug
+
+  cable:
+    <<: *primary_production
+    database: fmug_cable_production
+    migrations_paths: db/cable_migrate
+
+  queue:
+    <<: *primary_production
+    database: fmug_queue_production
+    migrations_paths: db/queue_migrate
+
+  cache:
+    <<: *primary_production
+    database: fmug_cache_production
+    migrations_paths: db/cache_migrate

@@ -1,5 +1,6 @@
 source "https://rubygems.org"
 
+gem "image_processing", "~> 1.2"
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 8.1.3"
 # The modern asset pipeline for Rails [https://github.com/rails/propshaft]

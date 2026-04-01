@@ -16,19 +16,20 @@ default: &default
   adapter: postgresql
   encoding: unicode
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  host: /var/run/postgresql
+  host: <%= ENV.fetch("PGHOST") { "localhost" } %>
+  port: <%= ENV.fetch("PGPORT") { 5432 } %>
 
 development:
   <<: *default
   database: fmug_development
-  username: postgres
-  password: postgres
+  username: <%= ENV.fetch("PGUSER") { "postgres" } %>
+  password: <%= ENV.fetch("PGPASSWORD") { "postgres" } %>
 
 test:
   <<: *default
   database: fmug_test
-  username: postgres
-  password: postgres
+  username: <%= ENV.fetch("PGUSER") { "postgres" } %>
+  password: <%= ENV.fetch("PGPASSWORD") { "postgres" } %>
 
 production:
   primary: &primary_production

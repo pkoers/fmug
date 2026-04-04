@@ -19,6 +19,7 @@
     </div>
 
     <div class="mt-6 flex flex-col gap-3 border-t border-stone-200 pt-6 lg:flex-row lg:justify-end">
+      <%= link_to "Home", root_path, class: "inline-flex items-center justify-center rounded-xl border border-stone-300 px-5 py-4 text-lg font-medium text-stone-700 transition hover:bg-stone-100" %>
       <%= link_to "Back to conferences", conferences_path, class: "inline-flex items-center justify-center rounded-xl border border-stone-300 px-5 py-4 text-lg font-medium text-stone-700 transition hover:bg-stone-100" %>
       <%= link_to "Edit this conference", edit_conference_path(@conference), class: "inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-4 text-lg font-semibold text-white transition hover:bg-blue-500" %>
       <%= button_to "Delete this conference", @conference, method: :delete, class: "inline-flex w-full items-center justify-center rounded-xl bg-red-600 px-5 py-4 text-lg font-semibold text-white transition hover:bg-red-500 lg:w-auto", data: { turbo_confirm: "Delete this conference?" } %>

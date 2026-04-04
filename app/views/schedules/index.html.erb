@@ -14,7 +14,10 @@
           Review each agenda item, adjust timing, and keep the published conference schedule tidy and readable.
         </p>
       </div>
-      <%= link_to "New schedule item", new_schedule_path, class: "inline-flex items-center justify-center rounded-xl bg-blue-600 px-6 py-4 text-lg font-semibold text-white transition hover:bg-blue-500" %>
+      <div class="flex flex-col gap-3 sm:flex-row">
+        <%= link_to "Home", root_path, class: "inline-flex items-center justify-center rounded-xl border border-stone-300 px-6 py-4 text-lg font-medium text-stone-700 transition hover:bg-stone-100" %>
+        <%= link_to "New schedule item", new_schedule_path, class: "inline-flex items-center justify-center rounded-xl bg-blue-600 px-6 py-4 text-lg font-semibold text-white transition hover:bg-blue-500" %>
+      </div>
     </div>
 
     <div id="schedules" class="mt-6 space-y-4">

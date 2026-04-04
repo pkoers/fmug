@@ -76,6 +76,7 @@
     <div class="mt-8 flex flex-col gap-3 border-t border-stone-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
       <p class="text-lg text-stone-500">Set the current flag only for the conference that should power the public landing page.</p>
       <div class="flex flex-col gap-3 sm:flex-row">
+        <%= link_to "Home", root_path, class: "inline-flex items-center justify-center rounded-xl border border-stone-300 px-5 py-4 text-lg font-medium text-stone-700 transition hover:bg-stone-100" %>
         <%= link_to "Back to conferences", conferences_path, class: "inline-flex items-center justify-center rounded-xl border border-stone-300 px-5 py-4 text-lg font-medium text-stone-700 transition hover:bg-stone-100" %>
         <% if conference.persisted? %>
           <%= link_to "Show conference", conference, class: "inline-flex items-center justify-center rounded-xl border border-stone-300 px-5 py-4 text-lg font-medium text-stone-700 transition hover:bg-stone-100" %>

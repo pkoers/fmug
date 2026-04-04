@@ -189,6 +189,7 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     get privacy_path
 
     assert_response :success
-    assert_includes response.body, "This is a placeholder privacy statement."
+    assert_includes response.body, "Privacy Statement (DRAFT)"
+    assert_includes response.body, "chair@fmug.eu"
   end
 end

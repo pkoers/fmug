@@ -82,7 +82,7 @@ GEM
     bcrypt_pbkdf (1.1.2)
     bigdecimal (4.1.1)
     bindex (0.8.1)
-    bootsnap (1.24.3)
+    bootsnap (1.24.4)
       msgpack (~> 1.2)
     brakeman (8.0.4)
       racc
@@ -366,9 +366,9 @@ GEM
     ruby-vips (2.3.0)
       ffi (~> 1.12)
       logger
-    rubyzip (3.2.2)
+    rubyzip (3.3.0)
     securerandom (0.4.1)
-    selenium-webdriver (4.43.0)
+    selenium-webdriver (4.44.0)
       base64 (~> 0.2)
       logger (~> 1.4)
       rexml (~> 3.2, >= 3.2.5)
@@ -406,12 +406,12 @@ GEM
     tailwindcss-rails (4.4.0)
       railties (>= 7.0.0)
       tailwindcss-ruby (~> 4.0)
-    tailwindcss-ruby (4.2.4)
-    tailwindcss-ruby (4.2.4-aarch64-linux-gnu)
-    tailwindcss-ruby (4.2.4-aarch64-linux-musl)
-    tailwindcss-ruby (4.2.4-arm64-darwin)
-    tailwindcss-ruby (4.2.4-x86_64-linux-gnu)
-    tailwindcss-ruby (4.2.4-x86_64-linux-musl)
+    tailwindcss-ruby (4.3.0)
+    tailwindcss-ruby (4.3.0-aarch64-linux-gnu)
+    tailwindcss-ruby (4.3.0-aarch64-linux-musl)
+    tailwindcss-ruby (4.3.0-arm64-darwin)
+    tailwindcss-ruby (4.3.0-x86_64-linux-gnu)
+    tailwindcss-ruby (4.3.0-x86_64-linux-musl)
     thor (1.5.0)
     thruster (0.1.20)
     thruster (0.1.20-aarch64-linux)
@@ -479,7 +479,7 @@ DEPENDENCIES
   solid_queue
   stimulus-rails
   tailwindcss-rails (~> 4.2)
-  tailwindcss-ruby (~> 4.2)
+  tailwindcss-ruby (~> 4.3)
   thruster
   turbo-rails
   tzinfo-data

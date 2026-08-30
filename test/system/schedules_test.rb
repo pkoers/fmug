@@ -21,11 +21,23 @@ class SchedulesTest < ApplicationSystemTestCase
     click_on "New schedule item"
 
     find_field("Conference").find("option[value='#{@conference.id}']").select_option
+    assert_equal @conference.id.to_s, find("#schedule_conference_id").value
     fill_in "Conference day", with: 1
     fill_in "Start time", with: "09:30"
     fill_in "Duration (minutes)", with: 45
     fill_in "Session title or description", with: "System test opening session"
+
+    warn "[CI DIAGNOSTICS] @conference.id=#{@conference.id}"
+    warn "[CI DIAGNOSTICS] #schedule_conference_id.value=#{find("#schedule_conference_id").value.inspect}"
+    warn "[CI DIAGNOSTICS] #schedule_conference_id.options=#{find("#schedule_conference_id").all("option").map { |option| { text: option.text, value: option.value } }.inspect}"
+    warn "[CI DIAGNOSTICS] #schedule_conference_id.disabled=#{find("#schedule_conference_id").disabled?}"
+    warn "[CI DIAGNOSTICS] page.current_url=#{page.current_url}"
+
     click_on "Create Schedule"
+
+    if page.has_selector?("#error_explanation", visible: true)
+      warn "[CI DIAGNOSTICS] visible validation errors=#{find("#error_explanation", visible: true).text.inspect}"
+    end
 
     assert_text "Schedule was successfully created"
     assert_text "System test opening session"

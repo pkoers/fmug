@@ -14,7 +14,6 @@ if Rails.env.development?
     user.last_name = "Koers"
     user.role = "Chair FMUG"
     user.admin = true
-    user.company = nil
     user.save!
   end
 end

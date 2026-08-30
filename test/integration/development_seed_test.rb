@@ -14,11 +14,13 @@ class DevelopmentSeedTest < ActiveSupport::TestCase
           load Rails.root.join("db/seeds.rb")
         end
 
+        company = Company.create!(name: "Development Company")
         User.find_by!(email: PATRICK_EMAIL).update!(
           first_name: "Old",
           last_name: "Details",
           role: "Member",
-          admin: false
+          admin: false,
+          company: company
         )
 
         assert_no_difference("User.count") do
@@ -33,7 +35,7 @@ class DevelopmentSeedTest < ActiveSupport::TestCase
     assert_equal "Chair FMUG", user.role
     assert user.admin?
     assert_equal 1, User.where(email: PATRICK_EMAIL).count
-    assert_nil user.company
+    assert_equal "Development Company", user.company.name
     assert_empty user.identities
     assert_empty user.login_magic_links
     assert_empty user.registrations

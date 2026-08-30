@@ -23,7 +23,13 @@ class SchedulesTest < ApplicationSystemTestCase
     find_field("Conference").find("option[value='#{@conference.id}']").select_option
     assert_equal @conference.id.to_s, find("#schedule_conference_id").value
     fill_in "Conference day", with: 1
-    fill_in "Start time", with: "09:30"
+    page.execute_script(<<~JAVASCRIPT)
+      const timeField = document.getElementById("schedule_time");
+      timeField.value = "09:30";
+      timeField.dispatchEvent(new Event("input", { bubbles: true }));
+      timeField.dispatchEvent(new Event("change", { bubbles: true }));
+    JAVASCRIPT
+    assert_equal "09:30", find("#schedule_time").value
     fill_in "Duration (minutes)", with: 45
     fill_in "Session title or description", with: "System test opening session"
 

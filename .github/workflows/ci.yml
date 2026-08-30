@@ -2,6 +2,7 @@ name: CI
 
 on:
   pull_request:
+    branches: [ main ]
   push:
     branches: [ main ]
 
@@ -56,3 +57,41 @@ jobs:
 
       - name: Lint code for consistent style
         run: bin/rubocop -f github
+
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      RAILS_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/fmug_test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      - name: Prepare test database
+        run: bin/rails db:prepare
+
+      - name: Run Rails tests
+        run: |
+          bin/rails test
+          bin/rails test:system

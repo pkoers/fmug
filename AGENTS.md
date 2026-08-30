@@ -101,6 +101,18 @@ If requirements are ambiguous and the ambiguity could materially affect
 application behaviour, stop and explain the ambiguity rather than making a
 large assumption.
 
+## Repository Documentation
+
+Do not modify `README.md` unless the task explicitly requires a README change.
+This applies even when additional documentation would be useful. Do not add
+setup instructions, operational procedures, implementation notes,
+authentication instructions, development instructions, or other information to
+`README.md` merely as a consequence of implementing another task. A general
+instruction to document a change does not authorize modifying `README.md`.
+If a README change appears useful but is not explicitly part of the task,
+leave `README.md` unchanged and mention the suggested documentation change
+in the completion report or PR Risks / Follow-up section.
+
 ---
 
 # Git Workflow
@@ -282,6 +294,18 @@ Do not expose secrets in:
 - screenshots
 - generated documentation
 
+Treat all tracked repository content as potentially public. Information that
+is not a password, credential, token, or secret is not automatically
+appropriate for publication. Do not publish personal contact information,
+administrator-account details, internal operational procedures,
+authentication/token-generation procedures, private infrastructure information,
+or other non-public information unless the task explicitly requires
+publication and doing so is appropriate. If internal documentation would be
+useful but there is no approved private documentation location, report that need
+to the human instead of committing the information elsewhere in the repository.
+Do not circumvent the `README.md` rule by placing information that would have
+gone into `README.md` into another tracked file.
+
 Treat external input as untrusted.
 
 Use Rails security mechanisms for:
@@ -366,7 +390,8 @@ For a normal implementation task Codex should:
 8. Review its own diff.
 9. Commit validated changes.
 10. Push its task branch.
-11. Create a pull request.
+11. Create a pull request, linking it to the originating GitHub Issue when the
+    work originated from one.
 12. Observe CI results.
 13. If CI fails because of the change, investigate and update the PR.
 14. When CI is green, present the PR to the human for review.
@@ -414,6 +439,15 @@ Check specifically for:
 For implementation tasks, pull-request creation is part of the normal
 autonomous workflow. A completed implementation should normally result in a
 pull request containing:
+
+When work originates from a GitHub Issue, the pull request must link to that
+Issue. Normally use a GitHub closing keyword in the PR description:
+
+    Closes #<issue-number>
+
+`Fixes` or `Resolves` may be used when more appropriate. Do not use a closing
+keyword if the PR only partially addresses the Issue; reference the Issue
+without automatically closing it in that case.
 
 ## Summary
 

@@ -71,3 +71,5 @@ end
 gem "tailwindcss-ruby", "~> 4.3"
 
 gem "tailwindcss-rails", "~> 4.6"
+
+gem "ruby-vips", "~> 2.0"

@@ -1,24 +1,44 @@
-# README
+# FMUG Conference Application
 
-This README would normally document whatever steps are necessary to get the
-application up and running..
+## Development setup
 
-Things you may want to cover:
+The application uses Ruby 3.4.2 and PostgreSQL. After creating the development
+database, run:
 
-* Ruby version 3.4.2
+    bin/rails db:setup
 
-* System dependencies
+The development seed creates or updates the administrator account for Patrick
+Koers (`pkoers75@gmail.com`). It sets the existing `Chair FMUG` role and the
+`admin` flag. The seed is idempotent and runs only when `Rails.env.development?`
+is true; it does not create identities, invitations, registrations, or magic
+links.
 
-* Configuration
+To provision or re-provision the account explicitly:
 
-* Database creation
+    bin/rails db:seed
 
-* Database initialization
+### Development login
 
-* How to run the test suite
+The application has no password login. To use the existing magic-link
+authentication without sending email, create a link in a development Rails
+console:
 
-* Services (job queues, cache servers, search engines, etc.)
+    bin/rails console
+    user = User.find_by!(email: "pkoers75@gmail.com")
+    login_magic_link = user.login_magic_links.create!
+    puts "http://localhost:3000/login-magic-links/#{login_magic_link.raw_token}"
 
-* Deployment instructions
+Open the printed URL in the local development browser. This creates only the
+digest-backed login-link record and signs in that user when the URL is opened;
+it does not call `EmailDeliveryService` or Brevo. Do not use this procedure
+against production or shared staging data.
 
-* ...
+Alternatively, when Google OAuth is configured for development, signing in
+with the Google account whose email is `pkoers75@gmail.com` matches the seeded
+user by email and attaches the Google identity through the normal callback.
+
+## Tests
+
+Run the Rails test suite with:
+
+    bin/rails test

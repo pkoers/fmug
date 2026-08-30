@@ -50,6 +50,11 @@ The project uses the following environments.
 
 Development may be performed on macOS.
 
+On Patrick's macOS local development environment, PostgreSQL uses the local
+role `pkoers`, not `postgres`. When required for local tests, use:
+
+    PGUSER=pkoers PGPASSWORD=
+
 ## LAB01
 
 LAB01 is the physical onsite Ubuntu test server.
@@ -100,9 +105,27 @@ large assumption.
 
 # Git Workflow
 
-Never commit directly to `main`.
+Codex may autonomously:
 
-For development work, use a dedicated feature or bug-fix branch.
+- create a dedicated feature, fix, refactor, or test branch
+- create and use Git worktrees for assigned tasks
+- commit validated changes to its own task branch
+- push its own task branch to origin
+- create a pull request against `main`
+- update its own open pull request after CI failures or review feedback
+- inspect GitHub CI/check results and PR feedback
+- create additional commits needed to correct its own PR
+
+Codex must not:
+
+- commit or push directly to `main`
+- merge a pull request
+- force-push a shared branch
+- rewrite shared Git history
+- modify another agent's task branch unless explicitly instructed
+
+An agent should normally work only on the branch/worktree created for its
+assigned task.
 
 Suggested naming conventions:
 
@@ -112,14 +135,6 @@ Suggested naming conventions:
 - `test/<short-description>`
 
 Keep commits focused on the requested task.
-
-Do not rewrite Git history unless explicitly instructed.
-
-Do not force-push unless explicitly instructed.
-
-Do not merge a pull request unless explicitly instructed.
-
-A human must approve merging into `main`.
 
 ---
 
@@ -337,6 +352,26 @@ Then implement the feature.
 Do not create an unnecessarily large architecture document for straightforward
 changes.
 
+## Normal Autonomous Task Lifecycle
+
+For a normal implementation task Codex should:
+
+1. Read `AGENTS.md`.
+2. Inspect repository status and relevant implementation.
+3. Create an appropriate task branch/worktree.
+4. Implement the smallest appropriate change.
+5. Add/update tests.
+6. Run targeted tests.
+7. Run the appropriate broader test and quality suite.
+8. Review its own diff.
+9. Commit validated changes.
+10. Push its task branch.
+11. Create a pull request.
+12. Observe CI results.
+13. If CI fails because of the change, investigate and update the PR.
+14. When CI is green, present the PR to the human for review.
+15. Stop before merge.
+
 ---
 
 # Bug Fix Workflow
@@ -376,7 +411,9 @@ Check specifically for:
 
 # Pull Requests
 
-When asked to prepare a pull request, provide a concise description containing:
+For implementation tasks, pull-request creation is part of the normal
+autonomous workflow. A completed implementation should normally result in a
+pull request containing:
 
 ## Summary
 
@@ -402,7 +439,14 @@ Any useful manual verification steps.
 
 Known limitations, risks or work that should be handled separately.
 
-Do not claim a PR is ready if known tests are failing.
+Codex may create and update this pull request autonomously.
+
+Do not declare a PR ready for human review while required tests or CI checks
+are failing, unless the failure is clearly identified as unrelated and is
+explicitly reported.
+
+The normal handoff point to the human is a validated PR ready for review and
+merge.
 
 ---
 
@@ -411,16 +455,20 @@ Do not claim a PR is ready if known tests are failing.
 Do not perform the following without explicit human instruction:
 
 - merge into `main`
+- push directly to `main`
 - deploy to LAB01
 - deploy to production
-- delete production/staging data
-- run destructive migrations
-- rotate or modify credentials
+- destructive staging/production database operations
+- destructive or irreversible migrations
+- credentials, tokens, secrets or external account configuration
 - change repository security settings
 - change GitHub branch protection
 - force-push shared branches
-- send real emails to conference participants
-- make irreversible external-system changes
+- real Brevo email or other externally visible communication
+- irreversible external-system actions
+- broad framework or dependency upgrades unless explicitly assigned
+
+Feature-branch pushes and pull-request creation do not require human approval.
 
 When uncertain whether an operation is destructive or externally visible,
 request approval.
@@ -454,7 +502,13 @@ Prefer small, reviewable changes.
 
 Test what you change.
 
-Never trade safety for autonomy.
+Maximize useful autonomy within clearly defined safety boundaries.
+
+Codex should complete routine development work independently when it can do so
+safely and verify the result.
+
+Escalate to the human at defined approval boundaries or when a material
+product decision cannot be inferred safely.
 # Project-Specific Architecture Notes
 
 ## Application Architecture

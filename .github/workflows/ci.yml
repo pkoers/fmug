@@ -97,6 +97,9 @@ jobs:
       - name: Prepare test database
         run: bin/rails db:prepare
 
+      - name: Run targeted schedule system test with diagnostics
+        run: bin/rails test test/system/schedules_test.rb -i test_admin_can_manage_schedule_items
+
       - name: Run Rails tests
         run: |
           bin/rails test

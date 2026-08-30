@@ -20,7 +20,7 @@ class SchedulesTest < ApplicationSystemTestCase
 
     click_on "New schedule item"
 
-    select @conference.edition.to_s, from: "Conference"
+    find_field("Conference").find("option[value='#{@conference.id}']").select_option
     fill_in "Conference day", with: 1
     fill_in "Start time", with: "09:30"
     fill_in "Duration (minutes)", with: 45

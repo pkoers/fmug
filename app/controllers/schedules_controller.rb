@@ -25,13 +25,16 @@ class SchedulesController < ApplicationController
 
   # POST /schedules or /schedules.json
   def create
-    @schedule = Schedule.new(schedule_params)
+    permitted_schedule_params = schedule_params
+    warn "[CI DIAGNOSTICS] submitted schedule_params=#{permitted_schedule_params.to_h.inspect}" if ci_diagnostics_enabled?
+    @schedule = Schedule.new(permitted_schedule_params)
 
     respond_to do |format|
       if @schedule.save
         format.html { redirect_to @schedule, notice: "Schedule was successfully created." }
         format.json { render :show, status: :created, location: @schedule }
       else
+        warn "[CI DIAGNOSTICS] @schedule.errors.full_messages=#{@schedule.errors.full_messages.inspect}" if ci_diagnostics_enabled?
         format.html { render :new, status: :unprocessable_entity }
         format.json { render json: @schedule.errors, status: :unprocessable_entity }
       end
@@ -70,5 +73,9 @@ class SchedulesController < ApplicationController
     # Only allow a list of trusted parameters through.
     def schedule_params
       params.require(:schedule).permit(:conference_id, :time, :length, :description, :day)
+    end
+
+    def ci_diagnostics_enabled?
+      Rails.env.test? && ENV["CI"].present?
     end
 end

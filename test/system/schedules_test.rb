@@ -27,15 +27,11 @@ class SchedulesTest < ApplicationSystemTestCase
     fill_in "Duration (minutes)", with: 45
     fill_in "Session title or description", with: "System test opening session"
 
-    warn "[CI DIAGNOSTICS] @conference.id=#{@conference.id}"
-    warn "[CI DIAGNOSTICS] #schedule_conference_id.value=#{find("#schedule_conference_id").value.inspect}"
-    warn "[CI DIAGNOSTICS] #schedule_conference_id.options=#{find("#schedule_conference_id").all("option").map { |option| { text: option.text, value: option.value } }.inspect}"
-    warn "[CI DIAGNOSTICS] #schedule_conference_id.disabled=#{find("#schedule_conference_id").disabled?}"
-    warn "[CI DIAGNOSTICS] page.current_url=#{page.current_url}"
+    emit_ci_schedule_form_diagnostics
 
     click_on "Create Schedule"
 
-    if page.has_selector?("#error_explanation", visible: true)
+    if Rails.env.test? && ENV["CI"].present? && page.has_selector?("#error_explanation", visible: true)
       warn "[CI DIAGNOSTICS] visible validation errors=#{find("#error_explanation", visible: true).text.inspect}"
     end
 
@@ -73,6 +69,26 @@ class SchedulesTest < ApplicationSystemTestCase
   end
 
   private
+
+  def emit_ci_schedule_form_diagnostics
+    return unless Rails.env.test? && ENV["CI"].present?
+
+    warn "[CI DIAGNOSTICS] @conference.id=#{@conference.id}"
+    warn "[CI DIAGNOSTICS] schedule form values=#{schedule_form_values.inspect}"
+    warn "[CI DIAGNOSTICS] #schedule_conference_id.options=#{find("#schedule_conference_id").all("option").map { |option| { text: option.text, value: option.value } }.inspect}"
+    warn "[CI DIAGNOSTICS] #schedule_conference_id.disabled=#{find("#schedule_conference_id").disabled?}"
+    warn "[CI DIAGNOSTICS] page.current_url=#{page.current_url}"
+  end
+
+  def schedule_form_values
+    {
+      conference_id: find_field("Conference").value,
+      day: find_field("Conference day").value,
+      time: find_field("Start time").value,
+      length: find_field("Duration (minutes)").value,
+      description: find_field("Session title or description").value
+    }
+  end
 
   def sign_in_as(user)
     login_magic_link = user.login_magic_links.create!

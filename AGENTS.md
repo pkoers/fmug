@@ -376,26 +376,63 @@ Then implement the feature.
 Do not create an unnecessarily large architecture document for straightforward
 changes.
 
+## Planner Requirements Gate
+
+The Planner is a requirements gate, not a mechanism for pushing every issue
+toward development. Before assigning work to the Developer, the Planner must
+understand the issue, inspect the relevant repository context, and determine
+which of these outcomes applies:
+
+- `READY_FOR_DEVELOPMENT`: the requirements are sufficiently clear and the
+  issue may proceed to the Developer. Only this outcome may trigger a
+  Developer handoff.
+- `NEEDS_CLARIFICATION`: an unresolved requirement could materially affect
+  product behaviour, the data model or retention, a user-visible workflow,
+  authorization or security, external communication, destructive behaviour,
+  or the intended issue scope. Development must stop. The Planner must post
+  concise, specific questions to the originating GitHub Issue. After the
+  human answers, the issue must return to the Planner for a fresh planning
+  pass; it must not go directly to the Developer.
+- `BLOCKED`: the requirements are understood, but a dependency, access,
+  configuration or other prerequisite prevents implementation. The Planner
+  must state the blocker and the action required from a human before work can
+  continue.
+- `NOT_ACTIONABLE`: the issue should not proceed to implementation. The
+  Planner must explain why.
+
+The Planner should make reasonable implementation-level decisions
+autonomously. It must request human clarification when the unresolved choice
+would materially affect any of the areas listed above, rather than silently
+inventing product requirements. `NEEDS_CLARIFICATION`, `BLOCKED` and
+`NOT_ACTIONABLE` are terminal outcomes for the current planning pass and must
+not be handed to the Developer.
+
 ## Normal Autonomous Task Lifecycle
 
 For a normal implementation task Codex should:
 
 1. Read `AGENTS.md`.
 2. Inspect repository status and relevant implementation.
-3. Create an appropriate task branch/worktree.
-4. Implement the smallest appropriate change.
-5. Add/update tests.
-6. Run targeted tests.
-7. Run the appropriate broader test and quality suite.
-8. Review its own diff.
-9. Commit validated changes.
-10. Push its task branch.
-11. Create a pull request, linking it to the originating GitHub Issue when the
+3. Have the Planner apply the requirements gate and record one explicit
+   outcome. Continue only when the outcome is `READY_FOR_DEVELOPMENT`.
+4. If the outcome is `NEEDS_CLARIFICATION`, `BLOCKED` or `NOT_ACTIONABLE`,
+   follow that outcome's required human-facing action and stop the current
+   autonomous run. A clarified issue must return to the Planner for a fresh
+   planning pass.
+5. Create an appropriate task branch/worktree.
+6. Implement the smallest appropriate change.
+7. Add/update tests.
+8. Run targeted tests.
+9. Run the appropriate broader test and quality suite.
+10. Review its own diff.
+11. Commit validated changes.
+12. Push its task branch.
+13. Create a pull request, linking it to the originating GitHub Issue when the
     work originated from one.
-12. Observe CI results.
-13. If CI fails because of the change, investigate and update the PR.
-14. When CI is green, present the PR to the human for review.
-15. Stop before merge.
+14. Observe CI results.
+15. If CI fails because of the change, investigate and update the PR.
+16. When CI is green, present the PR to the human for review.
+17. Stop before merge.
 
 ---
 

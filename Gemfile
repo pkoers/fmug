@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-gem "image_processing", "~> 2.0"
+gem "image_processing", "~> 2.1"
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
 gem "rails", "~> 8.1.3"
 # The modern asset pipeline for Rails [https://github.com/rails/propshaft]
@@ -22,7 +22,6 @@ gem "omniauth-rails_csrf_protection"
 gem "omniauth-google-oauth2"
 gem "redcarpet"
 
-gem "rspec"
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"
 
@@ -70,4 +69,6 @@ end
 
 gem "tailwindcss-ruby", "~> 4.3"
 
-gem "tailwindcss-rails", "~> 4.2"
+gem "tailwindcss-rails", "~> 4.6"
+
+gem "ruby-vips", "~> 2.0"

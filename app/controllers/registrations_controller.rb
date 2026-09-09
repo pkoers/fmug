@@ -1,6 +1,13 @@
 class RegistrationsController < ApplicationController
-  before_action :require_login
-  before_action :set_current_conference
+  before_action :require_admin, only: :index
+  before_action :require_login, only: [ :create, :destroy ]
+  before_action :set_current_conference, only: [ :create, :destroy ]
+
+  def index
+    @conference = Conference.current_conference.find(params[:conference_id])
+    @registrations = @conference.registrations.joins(:user).preload(:user)
+      .order("users.first_name", "users.last_name", "registrations.id")
+  end
 
   def create
     if current_user.registrations.exists?(conference: @conference)

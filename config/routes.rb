@@ -1,6 +1,8 @@
 Rails.application.routes.draw do
   resources :schedules
-  resources :conferences
+  resources :conferences do
+    resources :registrations, only: [ :index ]
+  end
   resources :users, only: [ :index, :destroy ] do
     patch :admin, on: :member
   end

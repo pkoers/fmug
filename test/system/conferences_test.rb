@@ -59,6 +59,22 @@ class ConferencesTest < ApplicationSystemTestCase
     assert_text "Conference was successfully destroyed"
   end
 
+  test "admin opens registrations from conference actions and returns" do
+    @admin.registrations.create!(conference: @conference, attending_physically: false,
+      agenda_nothing_to_present: true, chair_note: "First line\nSecond line with additional conference preparation details.")
+    sign_in_as(@admin)
+    visit conferences_url
+    click_on "Registrations"
+    assert_selector "h1", text: "Registrations"
+    assert_text @admin.email
+    assert_text "Online attendance"
+    assert_text "First line"
+    assert_text "Second line with additional conference preparation details."
+    assert_selector "dd.whitespace-pre-line", text: /First line/
+    click_on "Back to conferences"
+    assert_selector "h1", text: "Manage conferences"
+  end
+
   private
 
   def sign_in_as(user)

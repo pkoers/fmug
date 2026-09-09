@@ -120,6 +120,90 @@ class RegistrationsControllerTest < ActionController::TestCase
     assert_redirected_to root_url
   end
 
+  test "registration list requires the admin flag before looking up conferences" do
+    registration = @user.registrations.create!(conference: @conference, attending_physically: true, agenda_present: true, chair_note: "Private answer")
+    [ nil, @user.id ].each do |user_id|
+      @user.update!(role: "Admin")
+      session[:user_id] = user_id
+      get :index, params: { conference_id: @conference.id }
+      assert_redirected_to root_path
+      assert_not_includes response.body, registration.chair_note
+      get :index, params: { conference_id: 0 }
+      assert_redirected_to root_path
+    end
+  end
+
+  test "admins see all current registration answers without mutation or email" do
+    @user.update!(admin: true)
+    session[:user_id] = @user.id
+    registration = @user.registrations.create!(conference: @conference, attending_physically: true,
+      agenda_present: true, agenda_question: true, agenda_something_else: true,
+      agenda_something_else_text: "Workshop\nDiscussion", has_dietary_requirements: true,
+      dietary_requirements_text: "Vegetarian", chair_note: "Please contact me", created_at: Time.zone.local(2026, 1, 2))
+    @user.registrations.create!(conference: conferences(:two), attending_physically: false, agenda_present: true, chair_note: "Other conference secret")
+    with_replaced_singleton_method(EmailDeliveryService, :notify, ->(**) { flunk "Read-only page must not send email" }) do
+      assert_no_changes -> { registration.reload.attributes } do
+        assert_no_difference("Registration.count") { get :index, params: { conference_id: @conference.id } }
+      end
+    end
+    assert_response :success
+    [ "Registered User", @user.email, "Jan 2, 2026", "Physical attendance", "Present / Pitch an idea to the community",
+      "Ask a question/discuss a topic", "Something else: Workshop", "Discussion", "Dietary requirements: Vegetarian", "Please contact me" ].each do |answer|
+      assert_includes response.body, answer
+    end
+    assert_not_includes response.body, "Other conference secret"
+    assert_select "#registrations article", count: 1
+    assert_select "a[href=?]", conferences_path, text: "Back to conferences"
+  end
+
+  test "registration list rejects missing non-current and stale conference ids" do
+    @user.update!(admin: true)
+    session[:user_id] = @user.id
+    [ 0, conferences(:two).id ].each do |id|
+      assert_raises(ActiveRecord::RecordNotFound) { get :index, params: { conference_id: id } }
+    end
+    @conference.update!(current: false)
+    assert_raises(ActiveRecord::RecordNotFound) { get :index, params: { conference_id: @conference.id } }
+    conferences(:two).update!(current: true)
+    assert_raises(ActiveRecord::RecordNotFound) { get :index, params: { conference_id: @conference.id } }
+  end
+
+  test "registration list has an empty state and excludes unregistered members" do
+    @user.update!(admin: true)
+    session[:user_id] = @user.id
+    get :index, params: { conference_id: @conference.id }
+    assert_response :success
+    assert_select "#registrations", text: /No registrations yet for this conference/
+    assert_select "#registrations article", count: 0
+    assert_select "a[href=?]", conferences_path, text: "Back to conferences"
+  end
+
+  test "registration list orders names and handles online blank and legacy answers" do
+    @user.update!(admin: true)
+    session[:user_id] = @user.id
+    names = [ [ "Zoe", "A" ], [ "Amy", "Z" ], [ "Amy", "A" ], [ "Amy", "A" ] ]
+    registrations = names.each_with_index.map do |(first, last), index|
+      user = User.create!(first_name: first, last_name: last, email: "list#{index}@example.com", role: "Member")
+      user.registrations.create!(conference: @conference, attending_physically: false, agenda_nothing_to_present: true)
+    end
+    registrations.first.update_columns(agenda_nothing_to_present: false)
+    get :index, params: { conference_id: @conference.id }
+    assert_equal [ "Amy A", "Amy A", "Amy Z", "Zoe A" ], css_select("#registrations h2").map(&:text)
+    assert_equal [ "list2@example.com", "list3@example.com", "list1@example.com", "list0@example.com" ], css_select("#registrations article > p").map(&:text)
+    [ "Online attendance", "Nothing to present", "No agenda selections provided", "No dietary requirements", "No message provided" ].each { |answer| assert_includes response.body, answer }
+  end
+
+  test "registration list escapes member supplied text" do
+    @user.update!(admin: true, first_name: "<script>alert(1)</script>")
+    session[:user_id] = @user.id
+    @user.registrations.create!(conference: @conference, attending_physically: true, agenda_something_else: true,
+      agenda_something_else_text: "<script>agenda</script>", has_dietary_requirements: true,
+      dietary_requirements_text: "<script>diet</script>", chair_note: "<script>chair</script>")
+    get :index, params: { conference_id: @conference.id }
+    assert_select "#registrations script", count: 0
+    [ "alert(1)", "agenda", "diet", "chair" ].each { |value| assert_includes response.body, "&lt;script&gt;#{value}&lt;/script&gt;" }
+  end
+
   private
 
   def with_replaced_singleton_method(object, method_name, implementation)

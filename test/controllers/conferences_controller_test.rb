@@ -42,6 +42,19 @@ class ConferencesControllerTest < ActionController::TestCase
     assert_response :success
   end
 
+  test "only the current conference action group links to registrations even when empty" do
+    session[:user_id] = @admin.id
+    get :index
+    assert_select "#conferences article" do |articles|
+      assert_equal 2, articles.size
+      assert_select "a[href=?]", conference_registrations_path(@conference), text: "Registrations", count: 1
+      assert_select "a[href=?]", conference_registrations_path(conferences(:two)), count: 0
+    end
+    @conference.update!(current: false)
+    get :index
+    assert_select "a", text: "Registrations", count: 0
+  end
+
   test "should get new" do
     session[:user_id] = @admin.id
 

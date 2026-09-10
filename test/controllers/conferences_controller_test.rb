@@ -24,6 +24,7 @@ class ConferencesControllerTest < ActionController::TestCase
 
     assert_redirected_to root_path
     assert_equal "You are not authorized to perform that action.", flash[:alert]
+    assert_select "a", text: "Registrations", count: 0
   end
 
   test "redirects non-admins away from conference management" do
@@ -33,6 +34,7 @@ class ConferencesControllerTest < ActionController::TestCase
 
     assert_redirected_to root_path
     assert_equal "You are not authorized to perform that action.", flash[:alert]
+    assert_select "a", text: "Registrations", count: 0
   end
 
   test "should get index" do
@@ -40,6 +42,21 @@ class ConferencesControllerTest < ActionController::TestCase
 
     get :index
     assert_response :success
+  end
+
+  test "only current conference action group links to registrations even when empty" do
+    session[:user_id] = @admin.id
+    get :index
+
+    assert_select "a", text: "Registrations", count: 1
+    assert_select "article", text: /Conference 1/ do
+      assert_select "a[href=?]", conference_registrations_path(@conference), text: "Registrations"
+    end
+    assert_select "a[href=?]", conference_registrations_path(conferences(:two)), count: 0
+
+    @conference.update!(current: false)
+    get :index
+    assert_select "a", text: "Registrations", count: 0
   end
 
   test "should get new" do
@@ -73,6 +90,7 @@ class ConferencesControllerTest < ActionController::TestCase
 
     get :show, params: { id: @conference.id }
     assert_response :success
+    assert_select "a", text: "Registrations", count: 0
   end
 
   test "should get edit" do

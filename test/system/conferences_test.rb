@@ -59,6 +59,33 @@ class ConferencesTest < ApplicationSystemTestCase
     assert_text "Conference was successfully destroyed"
   end
 
+  test "admin reads registrations and returns to Conference Admin" do
+    Registration.create!(user: @admin, conference: @conference, attending_physically: false,
+      agenda_something_else: true, agenda_something_else_text: "A workshop about conference planning\nWith a practical discussion",
+      has_dietary_requirements: true, dietary_requirements_text: "Vegetarian\nNo nuts",
+      chair_note: "Please arrange a short discussion after the morning session. " * 8 + "\nThank you.")
+    sign_in_as(@admin)
+    assert_no_link "Registrations"
+    visit conferences_url
+    click_on "Registrations"
+
+    assert_selector "h1", text: "Registrations"
+    assert_text @admin.email
+    assert_text "Online attendance"
+    assert_text "With a practical discussion"
+    assert_text "No nuts"
+    assert_text "Thank you."
+    assert_selector "dd.whitespace-pre-wrap", text: "Thank you."
+    assert page.evaluate_script("document.documentElement.scrollWidth <= window.innerWidth")
+    page.current_window.resize_to(390, 844)
+    assert_text "Thank you."
+    assert page.evaluate_script("document.documentElement.scrollWidth <= window.innerWidth")
+    click_on "Back to conferences"
+    assert_selector "h1", text: "Manage conferences"
+  ensure
+    page.current_window.resize_to(1400, 1400)
+  end
+
   private
 
   def sign_in_as(user)

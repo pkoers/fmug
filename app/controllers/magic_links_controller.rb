@@ -28,7 +28,7 @@ class MagicLinksController < ApplicationController
 
     redirect_to root_path, notice: "Your magic link has been sent. It is valid for 15 minutes."
   rescue ActiveRecord::RecordInvalid
-    redirect_to root_path(invitation_token: magic_link_params[:invitation_token]), alert: "Please enter both your first name and last name."
+    redirect_to root_path(invitation_token: magic_link_params[:invitation_token]), alert: "Please enter your first name, last name, and company name."
   end
 
   def show
@@ -45,6 +45,7 @@ class MagicLinksController < ApplicationController
       user = User.find_or_create_by!(email: magic_link.invitation.email) do |record|
         record.first_name = magic_link.first_name
         record.last_name = magic_link.last_name
+        record.company_name = magic_link.company_name
         record.role = "Member"
       end
 
@@ -60,11 +61,11 @@ class MagicLinksController < ApplicationController
   private
 
   def magic_link_params
-    params.require(:magic_link).permit(:invitation_token, :first_name, :last_name)
+    params.require(:magic_link).permit(:invitation_token, :first_name, :last_name, :company_name)
   end
 
   def magic_link_request_attributes
-    magic_link_params.slice(:first_name, :last_name)
+    magic_link_params.slice(:first_name, :last_name, :company_name)
   end
 
   def redirect_if_logged_in

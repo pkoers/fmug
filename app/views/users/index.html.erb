@@ -23,6 +23,8 @@
               <% end %>
             </div>
 
+            <p class="text-xl text-stone-500"><%= user.company_name.presence || "Company not provided" %></p>
+
             <% if current_user.admin? %>
               <div class="flex flex-wrap items-center justify-center gap-3">
                 <% if user == current_user %>

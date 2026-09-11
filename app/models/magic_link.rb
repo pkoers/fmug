@@ -10,6 +10,7 @@ class MagicLink < ApplicationRecord
   before_validation :assign_expiration, on: :create
 
   validates :first_name, :last_name, :token_digest, :expires_at, presence: true
+  validates :company_name, presence: true, on: :create
   validates :token_digest, uniqueness: true
 
   scope :active, -> { where(used_at: nil).where("expires_at > ?", Time.current) }
@@ -39,6 +40,7 @@ class MagicLink < ApplicationRecord
   def normalize_attributes
     self.first_name = first_name.to_s.strip
     self.last_name = last_name.to_s.strip
+    self.company_name = company_name.to_s.strip
   end
 
   def assign_token

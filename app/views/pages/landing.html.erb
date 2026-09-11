@@ -377,6 +377,11 @@ end %>
               <%= form.text_field :last_name, id: "new-user-invitation-last-name", class: "invite-modal__input", autocomplete: "family-name", required: true %>
             </label>
 
+            <label class="invite-modal__field" for="new-user-invitation-company-name">
+              Company
+              <%= form.text_field :company_name, id: "new-user-invitation-company-name", class: "invite-modal__input", autocomplete: "organization", required: true %>
+            </label>
+
             <div class="registration-modal__actions">
               <button type="button" id="new-user-invitation-close" class="landing-auth__button">Close</button>
               <button type="submit" id="send-magic-link" class="landing-auth__button">Send magic link</button>

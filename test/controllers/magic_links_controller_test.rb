@@ -71,6 +71,29 @@ class MagicLinksControllerTest < ActionDispatch::IntegrationTest
     assert magic_link.reload.used_at.present?
   end
 
+  test "activates a legacy magic link without a company name" do
+    token = "legacy-magic-link-token"
+    now = Time.current
+    MagicLink.insert_all!([ {
+      invitation_id: @invitation.id,
+      first_name: "Guest",
+      last_name: "Member",
+      token_digest: MagicLink.digest(token),
+      expires_at: 10.minutes.from_now,
+      created_at: now,
+      updated_at: now
+    } ])
+
+    get magic_link_path(token)
+
+    assert_redirected_to root_url
+    user = User.find_by(email: "guest@example.com")
+    assert_not_nil user
+    assert_nil user.company_name
+    assert @invitation.reload.used_at.present?
+    assert MagicLink.find_by_token(token).used_at.present?
+  end
+
   test "rejects expired magic links" do
     magic_link = @invitation.magic_links.create!(first_name: "Guest", last_name: "Member", company_name: "Example Airlines")
     magic_link.update!(expires_at: 1.minute.ago)

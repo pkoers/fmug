@@ -25,6 +25,10 @@
             <dd><%= registration.created_at.to_date.to_fs(:long) %></dd>
           </div>
           <div class="min-w-0">
+            <dt class="font-semibold">Company</dt>
+            <dd class="break-words"><%= registration.user.company_name.presence || "Company not provided" %></dd>
+          </div>
+          <div class="min-w-0">
             <dt class="font-semibold">Agenda selections</dt>
             <dd>
               <% agenda_labels = registration_agenda_labels(registration) %>

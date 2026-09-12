@@ -1,0 +1,64 @@
+<% content_for :title, "Registrations — Conference #{@conference.edition}" %>
+
+<section class="w-full rounded-[32px] bg-stone-50 p-6 shadow-sm ring-1 ring-stone-200 sm:p-8">
+  <div class="flex flex-col gap-4 border-b border-stone-200 pb-6 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="text-lg font-semibold uppercase tracking-[0.24em] text-stone-500">Conference Admin</p>
+      <h1 class="mt-2 text-4xl font-semibold tracking-tight text-stone-900">Registrations</h1>
+      <p class="mt-3 text-xl text-stone-600">Conference <%= @conference.edition %> · <%= @conference.location %></p>
+    </div>
+    <%= link_to "Back to conferences", conferences_path, class: "inline-flex items-center justify-center rounded-xl border border-stone-300 px-6 py-4 text-lg font-medium text-stone-700 transition hover:bg-stone-100" %>
+  </div>
+
+  <div class="mt-6 space-y-4">
+    <% @registrations.each do |registration| %>
+      <article id="<%= dom_id(registration) %>" class="min-w-0 rounded-[28px] border border-stone-200 bg-white p-5 shadow-sm sm:p-6">
+        <h2 class="break-words text-2xl font-semibold text-stone-900"><%= registration.user.first_name %> <%= registration.user.last_name %></h2>
+        <p class="break-words text-lg text-stone-600"><%= registration.user.email %></p>
+        <dl class="mt-5 grid gap-5 text-lg text-stone-700 sm:grid-cols-2">
+          <div>
+            <dt class="font-semibold">Attendance</dt>
+            <dd><%= registration_attendance_label(registration) %></dd>
+          </div>
+          <div>
+            <dt class="font-semibold">Registration date</dt>
+            <dd><%= registration.created_at.to_date.to_fs(:long) %></dd>
+          </div>
+          <div class="min-w-0">
+            <dt class="font-semibold">Company</dt>
+            <dd class="break-words"><%= registration.user.company_name.presence || "Company not provided" %></dd>
+          </div>
+          <div class="min-w-0">
+            <dt class="font-semibold">Agenda selections</dt>
+            <dd>
+              <% agenda_labels = registration_agenda_labels(registration) %>
+              <% if agenda_labels.any? %>
+                <ul class="list-inside list-disc">
+                  <% agenda_labels.each do |label| %>
+                    <li class="whitespace-pre-wrap break-words"><%= label %></li>
+                  <% end %>
+                </ul>
+              <% else %>
+                No agenda selections recorded
+              <% end %>
+              <% if registration.agenda_something_else? && registration.agenda_something_else_text.blank? %>
+                <p>No additional details provided</p>
+              <% end %>
+            </dd>
+          </div>
+          <div class="min-w-0">
+            <dt class="font-semibold">Dietary requirements</dt>
+            <dd class="whitespace-pre-wrap break-words"><%= registration_dietary_label(registration) %></dd>
+          </div>
+          <div class="min-w-0 sm:col-span-2">
+            <dt class="font-semibold">Message for the Chair</dt>
+            <dd class="whitespace-pre-wrap break-words"><%= registration.chair_note.presence || "Not provided" %></dd>
+          </div>
+        </dl>
+      </article>
+    <% end %>
+    <% if @registrations.empty? %>
+      <p class="rounded-[28px] border border-dashed border-stone-300 bg-white px-6 py-16 text-center text-xl text-stone-600">No registrations yet for this conference</p>
+    <% end %>
+  </div>
+</section>

@@ -120,7 +120,144 @@ class RegistrationsControllerTest < ActionController::TestCase
     assert_redirected_to root_url
   end
 
+  test "admins see all answers for current registrations without mutations or email" do
+    @user.update!(admin: true, company_name: "Current Conference Airlines")
+    session[:user_id] = @user.id
+    registration = create_registration(
+      agenda_present: true, agenda_question: true, agenda_something_else: true,
+      agenda_something_else_text: "Workshop\nSecond topic",
+      has_dietary_requirements: true, dietary_requirements_text: "Vegetarian\nNo nuts",
+      chair_note: "Please call\nAfter lunch", created_at: Time.zone.local(2026, 9, 1)
+    )
+    outsider = User.create!(email: "outsider@example.com", first_name: "Outside", last_name: "Member",
+      company_name: "Other Conference Airlines", role: "Member")
+    create_registration(user: outsider, conference: conferences(:two), chair_note: "Other conference secret")
+    User.create!(email: "unregistered@example.com", first_name: "Unregistered", last_name: "Member", role: "Member")
+    before = Registration.order(:id).map(&:attributes)
+
+    with_replaced_singleton_method(EmailDeliveryService, :notify, ->(**) { flunk "GET must not send email" }) do
+      get :index, params: { conference_id: @conference.id }
+    end
+
+    assert_response :success
+    assert_equal before, Registration.order(:id).map(&:attributes)
+    assert_select "article", count: 1
+    assert_select "#registration_#{registration.id}" do
+      [ "Registered User", @user.email, "Physical attendance", "Present / Pitch an idea to the community",
+        "Ask a question/discuss a topic", "Something else: Workshop\nSecond topic", "Nothing to present",
+        "Dietary requirements: Vegetarian\nNo nuts", "Please call\nAfter lunch", "September 01, 2026",
+        "Company", "Current Conference Airlines" ].each do |answer|
+        assert_includes response.body, answer
+      end
+    end
+    assert_not_includes response.body, outsider.email
+    assert_not_includes response.body, "Other Conference Airlines"
+    assert_not_includes response.body, "Other conference secret"
+    assert_not_includes response.body, "unregistered@example.com"
+    assert_select "a[href=?]", conferences_path, text: "Back to conferences"
+    assert_select "article img", count: 0
+  end
+
+  test "registrations show the legacy company fallback when company is blank" do
+    @user.update!(admin: true)
+    session[:user_id] = @user.id
+    create_registration
+
+    get :index, params: { conference_id: @conference.id }
+
+    assert_response :success
+    assert_includes response.body, "Company"
+    assert_includes response.body, "Company not provided"
+  end
+
+  test "guests and non-admins including admin role text cannot read registrations" do
+    create_registration(chair_note: "Private chair note")
+    @user.update!(role: "Admin")
+    [ nil, @user.id ].each do |user_id|
+      session[:user_id] = user_id
+      get :index, params: { conference_id: @conference.id }
+      assert_redirected_to root_path
+      assert_not_includes response.body, @user.email
+      assert_not_includes response.body, "Private chair note"
+      assert_select "article", count: 0
+    end
+  end
+
+  test "unknown non-current and stale conference IDs are not found" do
+    @user.update!(admin: true)
+    session[:user_id] = @user.id
+    [ Conference.maximum(:id) + 1, conferences(:two).id ].each do |id|
+      assert_raises(ActiveRecord::RecordNotFound) { get :index, params: { conference_id: id } }
+    end
+    @conference.update!(current: false)
+    assert_raises(ActiveRecord::RecordNotFound) { get :index, params: { conference_id: @conference.id } }
+    conferences(:two).update!(current: true)
+    assert_raises(ActiveRecord::RecordNotFound) { get :index, params: { conference_id: @conference.id } }
+  end
+
+  test "online legacy registrations and blank optional answers are readable" do
+    @user.update!(admin: true)
+    session[:user_id] = @user.id
+    registration = create_registration(attending_physically: false)
+    registration.update_columns(agenda_nothing_to_present: false)
+    get :index, params: { conference_id: @conference.id }
+
+    assert_response :success
+    assert_includes response.body, "Online attendance"
+    assert_includes response.body, "No agenda selections recorded"
+    assert_includes response.body, "No dietary requirements"
+    assert_includes response.body, "Not provided"
+
+    registration.update_columns(agenda_something_else: true)
+    get :index, params: { conference_id: @conference.id }
+    assert_includes response.body, "No additional details provided"
+  end
+
+  test "registrations are ordered by first name last name then registration id" do
+    @user.update!(admin: true)
+    session[:user_id] = @user.id
+    records = [ [ "Zoe", "Alpha" ], [ "Amy", "Zulu" ], [ "Amy", "Alpha" ], [ "Amy", "Alpha" ] ].each_with_index.map do |(first, last), i|
+      user = User.create!(email: "ordered#{i}@example.com", first_name: first, last_name: last, role: "Member")
+      create_registration(user: user)
+    end
+
+    get :index, params: { conference_id: @conference.id }
+
+    assert_equal [ records[2], records[3], records[1], records[0] ].map { |record| "registration_#{record.id}" },
+      css_select("article").map { |article| article["id"] }
+  end
+
+  test "member entered content is escaped" do
+    payload = '<script>alert("private")</script>'
+    @user.update!(admin: true, first_name: payload, last_name: payload, email: "#{payload}@example.com", company_name: payload)
+    session[:user_id] = @user.id
+    create_registration(agenda_something_else: true, agenda_something_else_text: payload,
+      has_dietary_requirements: true, dietary_requirements_text: payload, chair_note: payload)
+
+    get :index, params: { conference_id: @conference.id }
+
+    assert_select "article script", count: 0
+    assert_not_includes response.body, payload
+    assert_includes response.body, ERB::Util.html_escape(payload)
+    assert_select "article h2", text: "#{payload} #{payload}"
+  end
+
+  test "empty current conference has return navigation" do
+    @user.update!(admin: true)
+    session[:user_id] = @user.id
+    get :index, params: { conference_id: @conference.id }
+
+    assert_response :success
+    assert_includes response.body, "No registrations yet for this conference"
+    assert_select "a[href=?]", conferences_path, text: "Back to conferences"
+  end
+
   private
+
+  def create_registration(**attributes)
+    Registration.create!({ user: @user, conference: @conference, attending_physically: true,
+      agenda_nothing_to_present: true }.merge(attributes))
+  end
 
   def with_replaced_singleton_method(object, method_name, implementation)
     singleton_class = object.singleton_class

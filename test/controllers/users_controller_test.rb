@@ -6,12 +6,14 @@ class UsersControllerTest < ActionController::TestCase
       email: "member@example.com",
       first_name: "Ada",
       last_name: "Lovelace",
+      company_name: "Analytical Engines",
       role: "Member"
     )
     @other_member = User.create!(
       email: "other@example.com",
       first_name: "Grace",
       last_name: "Hopper",
+      company_name: "Compiler Corp",
       role: "Member"
     )
   end
@@ -32,7 +34,9 @@ class UsersControllerTest < ActionController::TestCase
     assert_response :success
     assert_includes response.body, "Members"
     assert_includes response.body, "Ada Lovelace"
+    assert_includes response.body, "Analytical Engines"
     assert_includes response.body, "Grace Hopper (Admin)"
+    assert_includes response.body, "Compiler Corp"
     assert_not_includes response.body, "member@example.com"
     assert_not_includes response.body, "other@example.com"
   end
@@ -51,6 +55,16 @@ class UsersControllerTest < ActionController::TestCase
     assert_includes response.body, "other@example.com"
     assert_includes response.body, "Admin On"
     assert_includes response.body, "Delete"
+  end
+
+  test "shows a safe company fallback for legacy members" do
+    session[:user_id] = @member.id
+    @other_member.update_column(:company_name, nil)
+
+    get :index
+
+    assert_response :success
+    assert_includes response.body, "Company not provided"
   end
 
   test "admins can grant admin rights to another user" do

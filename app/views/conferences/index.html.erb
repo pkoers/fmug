@@ -27,6 +27,9 @@
             <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
               <%= render conference %>
               <div class="flex w-full flex-col gap-3 lg:w-auto lg:min-w-44">
+                <% if conference.current? %>
+                  <%= link_to "Registrations", conference_registrations_path(conference), class: "inline-flex items-center justify-center rounded-xl border border-stone-300 px-5 py-4 text-lg font-medium text-stone-700 transition hover:bg-stone-100" %>
+                <% end %>
                 <%= link_to "Show", conference, class: "inline-flex items-center justify-center rounded-xl border border-stone-300 px-5 py-4 text-lg font-medium text-stone-700 transition hover:bg-stone-100" %>
                 <%= link_to "Edit", edit_conference_path(conference), class: "inline-flex items-center justify-center rounded-xl border border-stone-300 px-5 py-4 text-lg font-medium text-stone-700 transition hover:bg-stone-100" %>
                 <%= button_to "Delete", conference, method: :delete, class: "inline-flex w-full items-center justify-center rounded-xl bg-red-600 px-5 py-4 text-lg font-semibold text-white transition hover:bg-red-500", data: { turbo_confirm: "Delete this conference?" } %>

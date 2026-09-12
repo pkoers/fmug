@@ -29,7 +29,8 @@ class MagicLinksControllerTest < ActionDispatch::IntegrationTest
           magic_link: {
             invitation_token: @invitation.raw_token,
             first_name: "Guest",
-            last_name: "Member"
+            last_name: "Member",
+            company_name: "  Example Airlines  "
           }
         }
       end
@@ -38,6 +39,7 @@ class MagicLinksControllerTest < ActionDispatch::IntegrationTest
     magic_link = MagicLink.last
 
     assert_equal @invitation, magic_link.invitation
+    assert_equal "Example Airlines", magic_link.company_name
     assert_equal "guest@example.com", delivery_payload[:to]
     assert_equal "Your FMUG magic link", delivery_payload[:subject]
     assert_equal :brevo, delivery_payload[:delivery]
@@ -51,7 +53,7 @@ class MagicLinksControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "activates the user and signs them in when the magic link is opened" do
-    magic_link = @invitation.magic_links.create!(first_name: "Guest", last_name: "Member")
+    magic_link = @invitation.magic_links.create!(first_name: "Guest", last_name: "Member", company_name: "Example Airlines")
 
     get magic_link_path(magic_link.raw_token)
 
@@ -62,14 +64,38 @@ class MagicLinksControllerTest < ActionDispatch::IntegrationTest
     assert_not_nil user
     assert_equal "Guest", user.first_name
     assert_equal "Member", user.last_name
+    assert_equal "Example Airlines", user.company_name
     assert_includes response.body, "Signed in as guest@example.com"
     assert_equal user.id, session[:user_id]
     assert @invitation.reload.used_at.present?
     assert magic_link.reload.used_at.present?
   end
 
+  test "activates a legacy magic link without a company name" do
+    token = "legacy-magic-link-token"
+    now = Time.current
+    MagicLink.insert_all!([ {
+      invitation_id: @invitation.id,
+      first_name: "Guest",
+      last_name: "Member",
+      token_digest: MagicLink.digest(token),
+      expires_at: 10.minutes.from_now,
+      created_at: now,
+      updated_at: now
+    } ])
+
+    get magic_link_path(token)
+
+    assert_redirected_to root_url
+    user = User.find_by(email: "guest@example.com")
+    assert_not_nil user
+    assert_nil user.company_name
+    assert @invitation.reload.used_at.present?
+    assert MagicLink.find_by_token(token).used_at.present?
+  end
+
   test "rejects expired magic links" do
-    magic_link = @invitation.magic_links.create!(first_name: "Guest", last_name: "Member")
+    magic_link = @invitation.magic_links.create!(first_name: "Guest", last_name: "Member", company_name: "Example Airlines")
     magic_link.update!(expires_at: 1.minute.ago)
 
     get magic_link_path(magic_link.raw_token)
@@ -77,6 +103,24 @@ class MagicLinksControllerTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_entity
     assert_includes response.body, "Magic Link used is not valid"
     assert_nil User.find_by(email: "guest@example.com")
+  end
+
+  test "rejects a blank company name without creating a magic link or sending email" do
+    with_replaced_singleton_method(EmailDeliveryService, :notify, ->(**) { flunk "blank company name must not send email" }) do
+      assert_no_difference("MagicLink.count") do
+        post magic_links_path, params: {
+          magic_link: {
+            invitation_token: @invitation.raw_token,
+            first_name: "Guest",
+            last_name: "Member",
+            company_name: "  "
+          }
+        }
+      end
+    end
+
+    assert_redirected_to root_url(invitation_token: @invitation.raw_token)
+    assert_equal "Please enter your first name, last name, and company name.", flash[:alert]
   end
 
   private

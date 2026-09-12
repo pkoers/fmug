@@ -121,7 +121,7 @@ class RegistrationsControllerTest < ActionController::TestCase
   end
 
   test "admins see all answers for current registrations without mutations or email" do
-    @user.update!(admin: true)
+    @user.update!(admin: true, company_name: "Current Conference Airlines")
     session[:user_id] = @user.id
     registration = create_registration(
       agenda_present: true, agenda_question: true, agenda_something_else: true,
@@ -129,7 +129,8 @@ class RegistrationsControllerTest < ActionController::TestCase
       has_dietary_requirements: true, dietary_requirements_text: "Vegetarian\nNo nuts",
       chair_note: "Please call\nAfter lunch", created_at: Time.zone.local(2026, 9, 1)
     )
-    outsider = User.create!(email: "outsider@example.com", first_name: "Outside", last_name: "Member", role: "Member")
+    outsider = User.create!(email: "outsider@example.com", first_name: "Outside", last_name: "Member",
+      company_name: "Other Conference Airlines", role: "Member")
     create_registration(user: outsider, conference: conferences(:two), chair_note: "Other conference secret")
     User.create!(email: "unregistered@example.com", first_name: "Unregistered", last_name: "Member", role: "Member")
     before = Registration.order(:id).map(&:attributes)
@@ -144,15 +145,29 @@ class RegistrationsControllerTest < ActionController::TestCase
     assert_select "#registration_#{registration.id}" do
       [ "Registered User", @user.email, "Physical attendance", "Present / Pitch an idea to the community",
         "Ask a question/discuss a topic", "Something else: Workshop\nSecond topic", "Nothing to present",
-        "Dietary requirements: Vegetarian\nNo nuts", "Please call\nAfter lunch", "September 01, 2026" ].each do |answer|
+        "Dietary requirements: Vegetarian\nNo nuts", "Please call\nAfter lunch", "September 01, 2026",
+        "Company", "Current Conference Airlines" ].each do |answer|
         assert_includes response.body, answer
       end
     end
     assert_not_includes response.body, outsider.email
+    assert_not_includes response.body, "Other Conference Airlines"
     assert_not_includes response.body, "Other conference secret"
     assert_not_includes response.body, "unregistered@example.com"
     assert_select "a[href=?]", conferences_path, text: "Back to conferences"
     assert_select "article img", count: 0
+  end
+
+  test "registrations show the legacy company fallback when company is blank" do
+    @user.update!(admin: true)
+    session[:user_id] = @user.id
+    create_registration
+
+    get :index, params: { conference_id: @conference.id }
+
+    assert_response :success
+    assert_includes response.body, "Company"
+    assert_includes response.body, "Company not provided"
   end
 
   test "guests and non-admins including admin role text cannot read registrations" do
@@ -214,7 +229,7 @@ class RegistrationsControllerTest < ActionController::TestCase
 
   test "member entered content is escaped" do
     payload = '<script>alert("private")</script>'
-    @user.update!(admin: true, first_name: payload, last_name: payload, email: "#{payload}@example.com")
+    @user.update!(admin: true, first_name: payload, last_name: payload, email: "#{payload}@example.com", company_name: payload)
     session[:user_id] = @user.id
     create_registration(agenda_something_else: true, agenda_something_else_text: payload,
       has_dietary_requirements: true, dietary_requirements_text: payload, chair_note: payload)

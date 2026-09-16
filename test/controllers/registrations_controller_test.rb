@@ -1,4 +1,5 @@
 require "test_helper"
+require "csv"
 
 class RegistrationsControllerTest < ActionController::TestCase
   setup do
@@ -227,6 +228,97 @@ class RegistrationsControllerTest < ActionController::TestCase
       css_select("article").map { |article| article["id"] }
   end
 
+  test "admins can download current registrations as a spreadsheet-safe CSV" do
+    @user.update!(
+      admin: true,
+      first_name: "=Registered",
+      last_name: "+User",
+      email: "-registered@example.com",
+      company_name: "@Current, \"Airlines\""
+    )
+    session[:user_id] = @user.id
+    create_registration(
+      agenda_present: true,
+      agenda_something_else: true,
+      agenda_something_else_text: "=Workshop, \"second topic\"\nThird topic",
+      has_dietary_requirements: true,
+      dietary_requirements_text: "+Vegetarian\nNo nuts",
+      chair_note: "@Please call\nAfter lunch",
+      created_at: Time.zone.local(2026, 9, 1)
+    )
+    outsider = User.create!(email: "outsider@example.com", first_name: "Outside", last_name: "Member", role: "Member")
+    create_registration(user: outsider, conference: conferences(:two))
+
+    get :index, params: { conference_id: @conference.id }, format: :csv
+
+    assert_response :success
+    assert_equal "text/csv", response.media_type
+    assert_match(/attachment; filename="conference-1-registrations\.csv"/, response.headers["Content-Disposition"])
+
+    rows = CSV.parse(response.body)
+    assert_equal csv_headers, rows.first
+    assert_equal [
+      "'=Registered", "'+User", "'-registered@example.com", "'@Current, \"Airlines\"", "Physical attendance", "2026-09-01",
+      "Present / Pitch an idea to the community; Something else; Nothing to present", "'=Workshop, \"second topic\"\nThird topic", "Yes", "'+Vegetarian\nNo nuts", "'@Please call\nAfter lunch"
+    ], rows.second
+    assert_equal 2, rows.length
+  end
+
+  test "CSV download uses the company fallback and is valid when no registrations exist" do
+    @user.update!(admin: true)
+    session[:user_id] = @user.id
+
+    get :index, params: { conference_id: @conference.id }, format: :csv
+
+    assert_response :success
+    assert_equal [ csv_headers ], CSV.parse(response.body)
+
+    create_registration
+    get :index, params: { conference_id: @conference.id }, format: :csv
+
+    assert_equal "Company not provided", CSV.parse(response.body).second[3]
+  end
+
+  test "CSV download keeps the established registration ordering" do
+    @user.update!(admin: true)
+    session[:user_id] = @user.id
+    [ [ "Zoe", "Alpha" ], [ "Amy", "Zulu" ], [ "Amy", "Alpha" ], [ "Amy", "Alpha" ] ].each_with_index do |(first, last), i|
+      user = User.create!(email: "csv-ordered#{i}@example.com", first_name: first, last_name: last, role: "Member")
+      create_registration(user: user)
+    end
+
+    get :index, params: { conference_id: @conference.id }, format: :csv
+
+    assert_equal [ [ "Amy", "Alpha" ], [ "Amy", "Alpha" ], [ "Amy", "Zulu" ], [ "Zoe", "Alpha" ] ],
+      CSV.parse(response.body).drop(1).map { |row| row.first(2) }
+  end
+
+  test "CSV download requires an administrator" do
+    create_registration(chair_note: "Private chair note")
+    @user.update!(role: "Admin")
+
+    [ nil, @user.id ].each do |user_id|
+      session[:user_id] = user_id
+      get :index, params: { conference_id: @conference.id }, format: :csv
+
+      assert_redirected_to root_path
+      assert_not_includes response.body, @user.email
+      assert_not_includes response.body, "Private chair note"
+    end
+  end
+
+  test "CSV download rejects unknown and non-current conference IDs" do
+    @user.update!(admin: true)
+    session[:user_id] = @user.id
+
+    [ Conference.maximum(:id) + 1, conferences(:two).id ].each do |id|
+      assert_raises(ActiveRecord::RecordNotFound) { get :index, params: { conference_id: id }, format: :csv }
+    end
+
+    @conference.update!(current: false)
+    assert_raises(ActiveRecord::RecordNotFound) { get :index, params: { conference_id: @conference.id }, format: :csv }
+  end
+
   test "member entered content is escaped" do
     payload = '<script>alert("private")</script>'
     @user.update!(admin: true, first_name: payload, last_name: payload, email: "#{payload}@example.com", company_name: payload)
@@ -250,6 +342,7 @@ class RegistrationsControllerTest < ActionController::TestCase
     assert_response :success
     assert_includes response.body, "No registrations yet for this conference"
     assert_select "a[href=?]", conferences_path, text: "Back to conferences"
+    assert_select "a[href=?]", conference_registrations_path(@conference, format: :csv), text: "Download CSV"
   end
 
   private
@@ -257,6 +350,22 @@ class RegistrationsControllerTest < ActionController::TestCase
   def create_registration(**attributes)
     Registration.create!({ user: @user, conference: @conference, attending_physically: true,
       agenda_nothing_to_present: true }.merge(attributes))
+  end
+
+  def csv_headers
+    [
+      "First name",
+      "Last name",
+      "Email",
+      "Company name",
+      "Attendance mode",
+      "Registration date",
+      "Agenda selections",
+      "Something else agenda detail",
+      "Dietary requirement status",
+      "Dietary detail",
+      "Message for the Chair"
+    ]
   end
 
   def with_replaced_singleton_method(object, method_name, implementation)

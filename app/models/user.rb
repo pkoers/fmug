@@ -22,13 +22,13 @@ class User < ApplicationRecord
     return unless photo.attached?
     return if photo.blob.content_type.in?(PHOTO_CONTENT_TYPES)
 
-    errors.add(:photo, "must be a PNG, JPG, JPEG, or WEBP")
+    errors.add(:photo, :unsupported_format, message: "must be a PNG, JPG, JPEG, or WEBP")
   end
 
   def photo_must_not_exceed_maximum_size
     return unless photo.attached?
     return if photo.blob.byte_size <= PHOTO_MAXIMUM_SIZE
 
-    errors.add(:photo, "must be 0.5 MB or smaller")
+    errors.add(:photo, :too_large, message: "must be 0.5 MB or smaller")
   end
 end

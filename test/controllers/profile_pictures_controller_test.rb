@@ -71,7 +71,7 @@ class ProfilePicturesControllerTest < ActionController::TestCase
     patch :update, params: { profile_picture: { photo: uploaded_photo(content_type: "image/gif", filename: "photo.gif") } }
 
     assert_redirected_to users_path
-    assert_equal "Photo must be a PNG, JPG, JPEG, or WEBP", flash[:alert]
+    assert_equal "Your profile picture must be a PNG, JPEG/JPG, or WebP image. Please choose a supported image.", flash[:alert]
     assert_equal original_blob_id, @member.reload.photo.blob.id
   end
 
@@ -83,7 +83,23 @@ class ProfilePicturesControllerTest < ActionController::TestCase
     patch :update, params: { profile_picture: { photo: uploaded_photo(content_type: "image/png", size: User::PHOTO_MAXIMUM_SIZE + 1) } }
 
     assert_redirected_to users_path
-    assert_equal "Photo must be 0.5 MB or smaller", flash[:alert]
+    assert_equal "Your profile picture exceeds the 0.5 MB maximum. Please choose a smaller image.", flash[:alert]
+    assert_equal original_blob_id, @member.reload.photo.blob.id
+  end
+
+  test "reports every invalid profile picture restriction without replacing the current picture" do
+    @member.photo.attach(io: StringIO.new("original"), filename: "original.png", content_type: "image/png")
+    original_blob_id = @member.photo.blob.id
+    session[:user_id] = @member.id
+
+    patch :update, params: {
+      profile_picture: {
+        photo: uploaded_photo(content_type: "image/gif", filename: "photo.gif", size: User::PHOTO_MAXIMUM_SIZE + 1)
+      }
+    }
+
+    assert_redirected_to users_path
+    assert_equal "Your profile picture must be a PNG, JPEG/JPG, or WebP image. Please choose a supported image. Your profile picture exceeds the 0.5 MB maximum. Please choose a smaller image.", flash[:alert]
     assert_equal original_blob_id, @member.reload.photo.blob.id
   end
 

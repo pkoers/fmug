@@ -4,12 +4,18 @@ module ApplicationHelper
   end
 
   def registration_agenda_labels(registration)
-    labels = []
-    labels << "Present / Pitch an idea to the community" if registration.agenda_present?
-    labels << "Ask a question/discuss a topic" if registration.agenda_question?
-    labels << "Something else: #{registration.agenda_something_else_text}" if registration.agenda_something_else?
-    labels << "Nothing to present" if registration.agenda_nothing_to_present?
-    labels
+    registration_agenda_selection_labels(registration).map do |label|
+      label == "Something else" ? "Something else: #{registration.agenda_something_else_text}" : label
+    end
+  end
+
+  def registration_agenda_selection_labels(registration)
+    [
+      ("Present / Pitch an idea to the community" if registration.agenda_present?),
+      ("Ask a question/discuss a topic" if registration.agenda_question?),
+      ("Something else" if registration.agenda_something_else?),
+      ("Nothing to present" if registration.agenda_nothing_to_present?)
+    ].compact
   end
 
   def registration_dietary_label(registration)

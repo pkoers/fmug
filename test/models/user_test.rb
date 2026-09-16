@@ -30,7 +30,17 @@ class UserTest < ActiveSupport::TestCase
     )
 
     assert_not user.valid?
+    assert user.errors.of_kind?(:photo, :too_large)
     assert_includes user.errors[:photo], "must be 0.5 MB or smaller"
+  end
+
+  test "user rejects unsupported profile picture formats" do
+    user = User.new(email: "member@example.com", first_name: "Member", last_name: "User")
+    user.photo.attach(io: StringIO.new("photo"), filename: "photo.gif", content_type: "image/gif")
+
+    assert_not user.valid?
+    assert user.errors.of_kind?(:photo, :unsupported_format)
+    assert_includes user.errors[:photo], "must be a PNG, JPG, JPEG, or WEBP"
   end
 
   test "user accepts profile picture at the maximum size" do

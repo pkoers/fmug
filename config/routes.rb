@@ -6,6 +6,7 @@ Rails.application.routes.draw do
   resources :users, only: [ :index, :destroy ] do
     patch :admin, on: :member
   end
+  resource :profile_picture, only: [ :update, :destroy ]
   resources :invitations, only: [ :create ]
   resources :magic_links, only: [ :create ]
   resources :login_magic_links, only: [ :create ]

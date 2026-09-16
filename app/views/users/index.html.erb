@@ -9,10 +9,27 @@
   <div class="w-full max-w-2xl overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm">
     <ul class="bg-stone-50 px-6 py-8">
       <% @users.each do |user| %>
-        <% avatar_seed = ERB::Util.url_encode("#{user.first_name}-#{user.last_name}-#{user.id}") %>
         <li class="mb-8 last:mb-0">
           <div class="flex w-full flex-col items-center gap-5 rounded-3xl bg-white px-6 pt-16 pb-14 text-center text-stone-800 shadow-sm ring-1 ring-stone-200">
-            <%= image_tag "https://robohash.org/#{avatar_seed}.png?set=set4&size=180x180", alt: "#{user.first_name} #{user.last_name} avatar", class: "h-36 w-36 rounded-full border border-stone-200 object-cover shadow-sm" %>
+            <% if user == current_user %>
+              <details class="group">
+                <summary class="list-none cursor-pointer" aria-label="Manage your profile picture">
+                  <%= image_tag user_avatar_source(user), alt: "#{user.first_name} #{user.last_name} avatar", class: "h-36 w-36 rounded-full border border-stone-200 object-cover shadow-sm" %>
+                </summary>
+                <div class="mt-4 flex flex-col items-center gap-3">
+                  <%= form_with url: profile_picture_path, scope: :profile_picture, method: :patch, class: "flex flex-col items-center gap-3" do |form| %>
+                    <%= form.label :photo, user.photo.attached? ? "Replace profile picture" : "Upload profile picture", class: "text-lg font-medium text-stone-800" %>
+                    <%= form.file_field :photo, accept: "image/png,image/jpeg,image/webp", class: "block w-full max-w-sm rounded-xl border border-stone-300 bg-stone-50 px-4 py-3 text-base text-stone-900 shadow-sm" %>
+                    <%= form.submit user.photo.attached? ? "Replace picture" : "Upload picture", class: "rounded-full border border-stone-300 bg-white px-4 py-2 text-base font-medium text-stone-700 transition hover:bg-stone-100" %>
+                  <% end %>
+                  <% if user.photo.attached? %>
+                    <%= button_to "Delete picture", profile_picture_path, method: :delete, form: { onsubmit: "return confirm('Are you sure you want to delete your profile picture?');" }, class: "rounded-full border border-red-300 bg-white px-4 py-2 text-base font-medium text-red-700 transition hover:bg-red-50" %>
+                  <% end %>
+                </div>
+              </details>
+            <% else %>
+              <%= image_tag user_avatar_source(user), alt: "#{user.first_name} #{user.last_name} avatar", class: "h-36 w-36 rounded-full border border-stone-200 object-cover shadow-sm" %>
+            <% end %>
 
             <div class="text-2xl">
               <span>

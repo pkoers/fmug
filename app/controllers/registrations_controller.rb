@@ -1,3 +1,5 @@
+require "csv"
+
 class RegistrationsController < ApplicationController
   before_action :require_admin, only: :index
   before_action :require_login, only: [ :create, :destroy ]
@@ -7,6 +9,16 @@ class RegistrationsController < ApplicationController
     @conference = Conference.current_conference.find(params[:conference_id])
     @registrations = @conference.registrations.joins(:user).preload(:user)
       .order("users.first_name", "users.last_name", "registrations.id")
+
+    respond_to do |format|
+      format.html
+      format.csv do
+        send_data registrations_csv,
+          filename: "conference-#{@conference.edition}-registrations.csv",
+          type: "text/csv; charset=utf-8",
+          disposition: :attachment
+      end
+    end
   end
 
   def create
@@ -93,5 +105,44 @@ class RegistrationsController < ApplicationController
       from_name: "FMUG Chair",
       from_email: "chair@fmug.eu"
     }
+  end
+
+  def registrations_csv
+    CSV.generate do |csv|
+      csv << [
+        "First name",
+        "Last name",
+        "Email",
+        "Company name",
+        "Attendance mode",
+        "Registration date",
+        "Agenda selections",
+        "Something else agenda detail",
+        "Dietary requirement status",
+        "Dietary detail",
+        "Message for the Chair"
+      ]
+
+      @registrations.each do |registration|
+        csv << [
+          registration.user.first_name,
+          registration.user.last_name,
+          registration.user.email,
+          registration.user.company_name.presence || "Company not provided",
+          helpers.registration_attendance_label(registration),
+          registration.created_at.to_date.iso8601,
+          helpers.registration_agenda_selection_labels(registration).join("; "),
+          registration.agenda_something_else? ? registration.agenda_something_else_text : nil,
+          registration.has_dietary_requirements? ? "Yes" : "No",
+          registration.has_dietary_requirements? ? registration.dietary_requirements_text : nil,
+          registration.chair_note
+        ].map { |value| spreadsheet_safe_csv_value(value) }
+      end
+    end
+  end
+
+  def spreadsheet_safe_csv_value(value)
+    value = value.to_s
+    value.match?(/\A[=+\-@]/) ? "'#{value}" : value
   end
 end

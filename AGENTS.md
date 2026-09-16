@@ -407,6 +407,25 @@ inventing product requirements. `NEEDS_CLARIFICATION`, `BLOCKED` and
 `NOT_ACTIONABLE` are terminal outcomes for the current planning pass and must
 not be handed to the Developer.
 
+### Ruby Gem Approval
+
+If implementing an issue requires adding a Ruby gem, or explicitly declaring
+a Ruby bundled/default gem in the `Gemfile`, the Planner must not mark the
+issue `READY_FOR_DEVELOPMENT`. The Planner must instead use the appropriate
+clarification outcome, normally `NEEDS_CLARIFICATION`, and ask for explicit
+human approval in the applicable GitHub Issue. The clarification must identify
+the gem and briefly explain why it is required. Planner analysis or a Planner
+recommendation does not constitute approval.
+
+After explicit human approval is recorded in that GitHub Issue, the Planner
+may reassess the issue and mark it `READY_FOR_DEVELOPMENT`. DEV may then
+update `Gemfile` and `Gemfile.lock` with that approved gem as part of
+implementing the issue. If DEV discovers that an unapproved gem is required,
+DEV must stop and report the blocker according to this workflow; technical
+necessity alone does not authorize adding it. Approval applies only to the
+identified gem and issue, and is not blanket authorization for unrelated
+dependencies.
+
 ## Normal Autonomous Task Lifecycle
 
 For a normal implementation task Codex should:

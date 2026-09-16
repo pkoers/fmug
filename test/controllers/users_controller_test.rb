@@ -67,6 +67,28 @@ class UsersControllerTest < ActionController::TestCase
     assert_includes response.body, "Company not provided"
   end
 
+  test "shows an attached picture for the current member and controls only on their card" do
+    @member.photo.attach(io: StringIO.new("photo"), filename: "member.png", content_type: "image/png")
+    session[:user_id] = @member.id
+
+    get :index
+
+    assert_select "img[alt=?][src*=?]", "Ada Lovelace avatar", "member.png"
+    assert_select "summary[aria-label='Manage your profile picture']", count: 1
+    assert_select "input[type='file'][accept='image/png,image/jpeg,image/webp']", count: 1
+    assert_select "form[action=?][onsubmit*=?]", profile_picture_path, "delete your profile picture"
+  end
+
+  test "shows the RoboHash fallback and no delete control when the current member has no picture" do
+    session[:user_id] = @member.id
+
+    get :index
+
+    assert_select "img[alt=?][src*='robohash.org']", "Ada Lovelace avatar", count: 1
+    assert_select "input[type='file'][accept='image/png,image/jpeg,image/webp']", count: 1
+    assert_select "form[action=?][onsubmit*=?]", profile_picture_path, "delete your profile picture", count: 0
+  end
+
   test "admins can grant admin rights to another user" do
     @member.update!(admin: true)
 

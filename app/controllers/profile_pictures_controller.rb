@@ -22,7 +22,7 @@ class ProfilePicturesController < ApplicationController
   private
 
   def profile_picture_params
-    params.require(:profile_picture).permit(:photo)
+    params.fetch(:profile_picture, ActionController::Parameters.new).permit(:photo)
   end
 
   def profile_picture_error_message

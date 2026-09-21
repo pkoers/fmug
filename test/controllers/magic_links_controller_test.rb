@@ -52,26 +52,65 @@ class MagicLinksControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Your magic link has been sent. It is valid for 15 minutes."
   end
 
-  test "activates the user and signs them in when the magic link is opened" do
+  test "renders a confirmation page without activating when the magic link is opened" do
     magic_link = @invitation.magic_links.create!(first_name: "Guest", last_name: "Member", company_name: "Example Airlines")
 
     get magic_link_path(magic_link.raw_token)
 
-    assert_redirected_to root_url
-    follow_redirect!
+    assert_response :success
+    assert_includes response.body, "Activate your FMUG account"
+    assert_select "form[action='#{activate_magic_link_path}'][method='post']"
+    assert_select "input[type='hidden'][name='token'][value='#{magic_link.raw_token}']"
 
+    assert_nil User.find_by(email: "guest@example.com")
+    assert_nil session[:user_id]
+    assert_nil @invitation.reload.used_at
+    assert_nil magic_link.reload.used_at
+  end
+
+  test "does not activate a magic link on a HEAD request" do
+    magic_link = @invitation.magic_links.create!(first_name: "Guest", last_name: "Member", company_name: "Example Airlines")
+
+    head magic_link_path(magic_link.raw_token)
+
+    assert_response :success
+    assert_nil User.find_by(email: "guest@example.com")
+    assert_nil session[:user_id]
+    assert_nil @invitation.reload.used_at
+    assert_nil magic_link.reload.used_at
+  end
+
+  test "activates the user and signs them in after confirmation" do
+    magic_link = @invitation.magic_links.create!(first_name: "Guest", last_name: "Member", company_name: "Example Airlines")
+
+    post activate_magic_link_path, params: { token: magic_link.raw_token }
+
+    assert_redirected_to root_url
     user = User.find_by(email: "guest@example.com")
     assert_not_nil user
     assert_equal "Guest", user.first_name
     assert_equal "Member", user.last_name
     assert_equal "Example Airlines", user.company_name
-    assert_includes response.body, "Signed in as guest@example.com"
     assert_equal user.id, session[:user_id]
     assert @invitation.reload.used_at.present?
     assert magic_link.reload.used_at.present?
   end
 
-  test "activates a legacy magic link without a company name" do
+  test "rejects a repeated activation POST" do
+    magic_link = @invitation.magic_links.create!(first_name: "Guest", last_name: "Member", company_name: "Example Airlines")
+
+    post activate_magic_link_path, params: { token: magic_link.raw_token }
+    assert_response :redirect
+
+    assert_no_difference("User.count") do
+      post activate_magic_link_path, params: { token: magic_link.raw_token }
+    end
+
+    assert_response :unprocessable_entity
+    assert_includes response.body, "Magic Link used is not valid"
+  end
+
+  test "activates a legacy magic link without a company name after confirmation" do
     token = "legacy-magic-link-token"
     now = Time.current
     MagicLink.insert_all!([ {
@@ -84,7 +123,7 @@ class MagicLinksControllerTest < ActionDispatch::IntegrationTest
       updated_at: now
     } ])
 
-    get magic_link_path(token)
+    post activate_magic_link_path, params: { token: }
 
     assert_redirected_to root_url
     user = User.find_by(email: "guest@example.com")
@@ -94,7 +133,7 @@ class MagicLinksControllerTest < ActionDispatch::IntegrationTest
     assert MagicLink.find_by_token(token).used_at.present?
   end
 
-  test "rejects expired magic links" do
+  test "rejects expired magic links on GET and POST" do
     magic_link = @invitation.magic_links.create!(first_name: "Guest", last_name: "Member", company_name: "Example Airlines")
     magic_link.update!(expires_at: 1.minute.ago)
 
@@ -102,6 +141,35 @@ class MagicLinksControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :unprocessable_entity
     assert_includes response.body, "Magic Link used is not valid"
+    assert_nil User.find_by(email: "guest@example.com")
+
+    post activate_magic_link_path, params: { token: magic_link.raw_token }
+
+    assert_response :unprocessable_entity
+    assert_nil User.find_by(email: "guest@example.com")
+  end
+
+  test "rejects unknown magic links on GET and POST" do
+    get magic_link_path("not-a-real-token")
+
+    assert_response :unprocessable_entity
+
+    post activate_magic_link_path, params: { token: "not-a-real-token" }
+
+    assert_response :unprocessable_entity
+  end
+
+  test "rejects a magic link whose invitation has already been consumed" do
+    magic_link = @invitation.magic_links.create!(first_name: "Guest", last_name: "Member", company_name: "Example Airlines")
+    @invitation.mark_as_used!
+
+    get magic_link_path(magic_link.raw_token)
+
+    assert_response :unprocessable_entity
+
+    post activate_magic_link_path, params: { token: magic_link.raw_token }
+
+    assert_response :unprocessable_entity
     assert_nil User.find_by(email: "guest@example.com")
   end
 

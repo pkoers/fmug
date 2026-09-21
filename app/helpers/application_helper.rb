@@ -129,10 +129,10 @@ module ApplicationHelper
       "",
       "Your FMUG magic link is ready.",
       "",
-      "Use this link within 15 minutes to activate your account and sign in:",
+      "Use this link within 15 minutes to continue activating your account:",
       magic_link_url(magic_link.raw_token),
       "",
-      "After you click it, your invitation will be completed and you will be signed in.",
+      "You will be asked to confirm activation before your invitation is completed and you are signed in.",
       "",
       "Kind regards,",
       "FMUG Chair"
@@ -145,9 +145,9 @@ module ApplicationHelper
     safe_join([
       content_tag(:p, "Hi #{magic_link.first_name},"),
       content_tag(:p, "Your FMUG magic link is ready."),
-      content_tag(:p, "Use this link within 15 minutes to activate your account and sign in:"),
+      content_tag(:p, "Use this link within 15 minutes to continue activating your account:"),
       content_tag(:p, link_to(link, link)),
-      content_tag(:p, "After you click it, your invitation will be completed and you will be signed in."),
+      content_tag(:p, "You will be asked to confirm activation before your invitation is completed and you are signed in."),
       content_tag(:p, "Kind regards,"),
       content_tag(:p, "FMUG Chair")
     ])

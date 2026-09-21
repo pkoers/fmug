@@ -1,0 +1,11 @@
+<section class="flex min-h-[70vh] w-full items-center justify-center px-6 py-16">
+  <div class="w-full max-w-3xl rounded-3xl border border-stone-200 bg-white px-10 py-12 text-center shadow-sm">
+    <h1 class="text-4xl font-bold text-stone-900">Activate your FMUG account</h1>
+    <p class="mt-5 text-xl text-stone-700">Confirm that you want to activate your account and sign in.</p>
+
+    <%= form_with url: activate_magic_link_path, method: :post, class: "mt-8" do |form| %>
+      <%= hidden_field_tag :token, params[:token] %>
+      <%= form.submit "Activate account", class: "rounded-xl bg-blue-600 px-6 py-3 text-lg font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" %>
+    <% end %>
+  </div>
+</section>

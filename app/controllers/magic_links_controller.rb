@@ -32,16 +32,31 @@ class MagicLinksController < ApplicationController
   end
 
   def show
+    @magic_link = MagicLink.find_by_token(params[:token])
+
+    unless @magic_link&.usable?
+      render :invalid, status: :unprocessable_entity
+    end
+  end
+
+  def activate
     magic_link = MagicLink.find_by_token(params[:token])
 
-    unless magic_link&.usable?
+    unless magic_link
       render :invalid, status: :unprocessable_entity
       return
     end
 
     user = nil
+    activated = false
 
     ActiveRecord::Base.transaction do
+      magic_link.lock!
+      invitation = magic_link.invitation
+      invitation.lock!
+
+      next unless magic_link.usable?
+
       user = User.find_or_create_by!(email: magic_link.invitation.email) do |record|
         record.first_name = magic_link.first_name
         record.last_name = magic_link.last_name
@@ -50,7 +65,13 @@ class MagicLinksController < ApplicationController
       end
 
       magic_link.mark_as_used!
-      magic_link.invitation.mark_as_used!
+      invitation.mark_as_used!
+      activated = true
+    end
+
+    unless activated
+      render :invalid, status: :unprocessable_entity
+      return
     end
 
     session[:user_id] = user.id

@@ -1,1 +1,6 @@
-This is rendered additional information for the landing page.
+The Agenda will be available soon.
+
+
+**VISA** 
+<br>
+If you need a visa, contact the chair asap for assistance

@@ -6,6 +6,8 @@
     <%= link_to "Back", root_path, class: "landing-auth__button" %>
   </div>
 
+  <%= render "leadership_profiles", leadership_profile: @leadership_profile %>
+
   <div class="w-full max-w-2xl overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm">
     <ul class="bg-stone-50 px-6 py-8">
       <% @users.each do |user| %>

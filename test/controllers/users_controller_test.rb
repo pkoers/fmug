@@ -89,6 +89,21 @@ class UsersControllerTest < ActionController::TestCase
     assert_select "form[action=?][onsubmit*=?]", profile_picture_path, "delete your profile picture", count: 0
   end
 
+  test "shows leadership profile management only to admins" do
+    session[:user_id] = @member.id
+
+    get :index
+
+    assert_select "summary[aria-label='Manage Chair and Vice-Chair profiles']", count: 0
+
+    @member.update!(admin: true)
+    get :index
+
+    assert_select "summary[aria-label='Manage Chair and Vice-Chair profiles']", count: 1
+    assert_select "input[type='file'][name='leadership_profile[chair_photo]'][accept='image/png,image/jpeg,image/webp']", count: 1
+    assert_select "input[type='file'][name='leadership_profile[vice_chair_photo]'][accept='image/png,image/jpeg,image/webp']", count: 1
+  end
+
   test "admins can grant admin rights to another user" do
     @member.update!(admin: true)
 

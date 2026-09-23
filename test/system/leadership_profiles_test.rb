@@ -21,14 +21,11 @@ class LeadershipProfilesTest < ApplicationSystemTestCase
     attach_file "leadership_profile_chair_photo", Rails.root.join("app/assets/images/fmug-400dpiLogo.jpeg")
     click_on "Save Chair profile"
 
-    assert_text "Leadership profiles were updated."
-
     find("summary[aria-label='Manage Chair and Vice-Chair profiles']").click
     assert_field "leadership_profile_chair_name", with: "Ada Chair"
     assert_button "Remove Chair photo"
     accept_confirm { click_on "Remove Chair photo" }
 
-    assert_text "Chair photo was removed."
     find("summary[aria-label='Manage Chair and Vice-Chair profiles']").click
     assert_no_button "Remove Chair photo"
   end

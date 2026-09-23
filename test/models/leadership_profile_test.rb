@@ -2,6 +2,43 @@ require "test_helper"
 require "stringio"
 
 class LeadershipProfileTest < ActiveSupport::TestCase
+  test "returns nil when no singleton profile exists" do
+    assert_nil LeadershipProfile.current
+  end
+
+  test "creates and reuses the singleton profile" do
+    profile = LeadershipProfile.instance
+
+    assert_equal profile, LeadershipProfile.current
+    assert_equal profile, LeadershipProfile.instance
+    assert_equal 1, LeadershipProfile.count
+  end
+
+  test "resolves an existing singleton through the unique conflict path" do
+    profile = LeadershipProfile.create!
+
+    assert_equal profile, LeadershipProfile.instance
+    assert_equal 1, LeadershipProfile.count
+  end
+
+  test "database prevents a second singleton profile" do
+    LeadershipProfile.instance
+
+    assert_raises(ActiveRecord::RecordNotUnique) do
+      LeadershipProfile.transaction(requires_new: true) do
+        LeadershipProfile.create!(singleton_key: LeadershipProfile::SINGLETON_KEY)
+      end
+    end
+  end
+
+  test "database prevents a non-singleton key" do
+    assert_raises(ActiveRecord::StatementInvalid) do
+      LeadershipProfile.transaction(requires_new: true) do
+        LeadershipProfile.create!(singleton_key: LeadershipProfile::SINGLETON_KEY + 1)
+      end
+    end
+  end
+
   test "accepts supported Chair and Vice-Chair photo formats" do
     %w[image/png image/jpeg image/jpg image/webp].each do |content_type|
       profile = LeadershipProfile.new

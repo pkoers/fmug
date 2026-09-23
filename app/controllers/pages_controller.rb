@@ -1,6 +1,6 @@
 class PagesController < ApplicationController
   def landing
-    @leadership_profile = LeadershipProfile.first
+    @leadership_profile = LeadershipProfile.current
     @invitation_token_supplied = params[:invitation_token].present?
     @invitation = find_valid_invitation(params[:invitation_token]) if @invitation_token_supplied
     @invitation_token_valid = @invitation.present?

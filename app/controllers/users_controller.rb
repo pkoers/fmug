@@ -4,7 +4,7 @@ class UsersController < ApplicationController
 
   def index
     @users = User.order(:first_name, :last_name)
-    @leadership_profile = LeadershipProfile.first || LeadershipProfile.new
+    @leadership_profile = LeadershipProfile.current || LeadershipProfile.new
   end
 
   def destroy

@@ -2,7 +2,7 @@ class LeadershipProfilesController < ApplicationController
   before_action :require_admin
 
   def update
-    leadership_profile = LeadershipProfile.first_or_initialize
+    leadership_profile = LeadershipProfile.instance
 
     if leadership_profile.update(leadership_profile_params)
       redirect_to users_path, notice: "Leadership profiles were updated."
@@ -12,14 +12,14 @@ class LeadershipProfilesController < ApplicationController
   end
 
   def chair_photo
-    leadership_profile = LeadershipProfile.first
+    leadership_profile = LeadershipProfile.current
     leadership_profile&.chair_photo&.purge if leadership_profile&.chair_photo&.attached?
 
     redirect_to users_path, notice: "Chair photo was removed."
   end
 
   def vice_chair_photo
-    leadership_profile = LeadershipProfile.first
+    leadership_profile = LeadershipProfile.current
     leadership_profile&.vice_chair_photo&.purge if leadership_profile&.vice_chair_photo&.attached?
 
     redirect_to users_path, notice: "Vice-Chair photo was removed."

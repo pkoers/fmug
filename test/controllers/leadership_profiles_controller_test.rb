@@ -13,8 +13,9 @@ class LeadershipProfilesControllerTest < ActionController::TestCase
 
     assert_redirected_to users_path
     assert_equal "Leadership profiles were updated.", flash[:notice]
-    assert_equal "Ada Chair", LeadershipProfile.first.chair_name
-    assert_equal "Grace Vice", LeadershipProfile.first.vice_chair_name
+    assert_equal "Ada Chair", LeadershipProfile.current.chair_name
+    assert_equal "Grace Vice", LeadershipProfile.current.vice_chair_name
+    assert_equal 1, LeadershipProfile.count
   end
 
   test "admin can upload initial photos for both leadership profiles" do
@@ -28,8 +29,9 @@ class LeadershipProfilesControllerTest < ActionController::TestCase
     }
 
     assert_redirected_to users_path
-    assert LeadershipProfile.first.chair_photo.attached?
-    assert LeadershipProfile.first.vice_chair_photo.attached?
+    assert LeadershipProfile.current.chair_photo.attached?
+    assert LeadershipProfile.current.vice_chair_photo.attached?
+    assert_equal 1, LeadershipProfile.count
   end
 
   test "admin can upload and replace each leadership photo" do
@@ -102,7 +104,7 @@ class LeadershipProfilesControllerTest < ActionController::TestCase
     patch :update, params: { leadership_profile: { chair_name: "Ada Chair" } }
 
     assert_redirected_to root_path
-    assert_nil LeadershipProfile.first
+    assert_nil LeadershipProfile.current
 
     delete :chair_photo
 
@@ -115,7 +117,7 @@ class LeadershipProfilesControllerTest < ActionController::TestCase
     patch :update, params: { leadership_profile: { chair_name: "Ada Chair" } }
 
     assert_redirected_to root_path
-    assert_nil LeadershipProfile.first
+    assert_nil LeadershipProfile.current
 
     delete :vice_chair_photo
 

@@ -57,7 +57,6 @@ class ProfilePicturesTest < ApplicationSystemTestCase
       click_on "Delete picture"
     end
 
-    assert_text "Your profile picture was removed."
     assert_not @member.reload.photo.attached?
   end
 

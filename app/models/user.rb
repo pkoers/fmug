@@ -1,6 +1,8 @@
 class User < ApplicationRecord
-  PHOTO_CONTENT_TYPES = %w[image/png image/jpeg image/jpg image/webp].freeze
-  PHOTO_MAXIMUM_SIZE = 0.5.megabytes
+  include ImageAttachmentValidations
+
+  PHOTO_CONTENT_TYPES = ImageAttachmentValidations::PHOTO_CONTENT_TYPES
+  PHOTO_MAXIMUM_SIZE = ImageAttachmentValidations::PHOTO_MAXIMUM_SIZE
 
   has_one_attached :photo, dependent: :purge
 
@@ -13,22 +15,11 @@ class User < ApplicationRecord
 
   validates :email, :first_name, :last_name, presence: true
   validates :email, uniqueness: true
-  validate :photo_must_be_supported_format
-  validate :photo_must_not_exceed_maximum_size
+  validate :photo_is_valid
 
   private
 
-  def photo_must_be_supported_format
-    return unless photo.attached?
-    return if photo.blob.content_type.in?(PHOTO_CONTENT_TYPES)
-
-    errors.add(:photo, :unsupported_format, message: "must be a PNG, JPG, JPEG, or WEBP")
-  end
-
-  def photo_must_not_exceed_maximum_size
-    return unless photo.attached?
-    return if photo.blob.byte_size <= PHOTO_MAXIMUM_SIZE
-
-    errors.add(:photo, :too_large, message: "must be 0.5 MB or smaller")
+  def photo_is_valid
+    validate_image_attachment(:photo)
   end
 end

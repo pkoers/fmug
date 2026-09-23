@@ -7,6 +7,10 @@ Rails.application.routes.draw do
     patch :admin, on: :member
   end
   resource :profile_picture, only: [ :update, :destroy ]
+  resource :leadership_profile, only: [ :update ] do
+    delete :chair_photo
+    delete :vice_chair_photo
+  end
   resources :invitations, only: [ :create ]
   resources :magic_links, only: [ :create ]
   resources :login_magic_links, only: [ :create ]

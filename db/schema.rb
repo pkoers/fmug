@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_14_100000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_23_212646) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -87,6 +87,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_14_100000) do
     t.index ["email"], name: "index_invitations_on_email"
     t.index ["inviter_id"], name: "index_invitations_on_inviter_id"
     t.index ["token_digest"], name: "index_invitations_on_token_digest", unique: true
+  end
+
+  create_table "leadership_profiles", force: :cascade do |t|
+    t.string "chair_name"
+    t.datetime "created_at", null: false
+    t.integer "singleton_key", default: 1, null: false
+    t.datetime "updated_at", null: false
+    t.string "vice_chair_name"
+    t.index ["singleton_key"], name: "index_leadership_profiles_on_singleton_key", unique: true
+    t.check_constraint "singleton_key = 1", name: "leadership_profiles_singleton_key"
   end
 
   create_table "login_magic_links", force: :cascade do |t|

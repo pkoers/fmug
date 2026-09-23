@@ -193,4 +193,32 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Privacy Statement (DRAFT)"
     assert_includes response.body, "chair@fmug.eu"
   end
+
+  test "renders leadership profile names and cropped photos on the landing page" do
+    profile = LeadershipProfile.create!(chair_name: "Ada Chair", vice_chair_name: "Grace Vice")
+    profile.chair_photo.attach(io: StringIO.new("chair"), filename: "chair.png", content_type: "image/png")
+    profile.vice_chair_photo.attach(io: StringIO.new("vice-chair"), filename: "vice-chair.png", content_type: "image/png")
+
+    get root_path
+
+    assert_response :success
+    assert_operator response.body.index("Ada Chair"), :<, response.body.index("Grace Vice")
+    assert_select "sl-avatar[style*='9rem'][image*='representations']", count: 2
+  end
+
+  test "renders leadership fallbacks when profile data is missing or blank" do
+    get root_path
+
+    assert_response :success
+    assert_includes response.body, ERB::Util.html_escape(LeadershipProfilesHelper::CHAIR_PLACEHOLDER_IMAGE)
+    assert_includes response.body, ERB::Util.html_escape(LeadershipProfilesHelper::VICE_CHAIR_PLACEHOLDER_IMAGE)
+    assert_includes response.body, ">Chair<"
+    assert_includes response.body, ">Vice-Chair<"
+
+    LeadershipProfile.create!(chair_name: "   ", vice_chair_name: "")
+    get root_path
+
+    assert_includes response.body, ">Chair<"
+    assert_includes response.body, ">Vice-Chair<"
+  end
 end

@@ -1,0 +1,39 @@
+<% if current_user.admin? %>
+  <div class="w-full max-w-2xl overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm">
+    <details class="group px-6 py-6">
+      <summary class="cursor-pointer text-2xl font-semibold text-stone-900" aria-label="Manage Chair and Vice-Chair profiles">
+        Manage Chair and Vice-Chair
+      </summary>
+
+      <div class="mt-6 grid gap-6 md:grid-cols-2">
+        <div class="rounded-2xl bg-stone-50 p-5">
+          <h2 class="text-xl font-semibold text-stone-900">Chair</h2>
+          <%= form_with url: leadership_profile_path, scope: :leadership_profile, method: :patch, class: "mt-4" do |form| %>
+            <%= form.label :chair_name, "Display name", class: "block text-lg font-medium text-stone-800" %>
+            <%= form.text_field :chair_name, value: leadership_profile.chair_name, class: "mt-2 block w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-base text-stone-900 shadow-sm" %>
+            <%= form.label :chair_photo, leadership_profile.chair_photo.attached? ? "Replace photo" : "Upload photo", class: "mt-4 block text-lg font-medium text-stone-800" %>
+            <%= form.file_field :chair_photo, accept: "image/png,image/jpeg,image/webp", class: "mt-2 block w-full text-base text-stone-900" %>
+            <%= form.submit "Save Chair profile", class: "mt-4 rounded-full border border-stone-300 bg-white px-4 py-2 text-base font-medium text-stone-700 transition hover:bg-stone-100" %>
+          <% end %>
+          <% if leadership_profile.chair_photo.attached? %>
+            <%= button_to "Remove Chair photo", chair_photo_leadership_profile_path, method: :delete, form: { class: "mt-4", onsubmit: "return confirm('Are you sure you want to remove the Chair photo?');" }, class: "rounded-full border border-red-300 bg-white px-4 py-2 text-base font-medium text-red-700 transition hover:bg-red-50" %>
+          <% end %>
+        </div>
+
+        <div class="rounded-2xl bg-stone-50 p-5">
+          <h2 class="text-xl font-semibold text-stone-900">Vice-Chair</h2>
+          <%= form_with url: leadership_profile_path, scope: :leadership_profile, method: :patch, class: "mt-4" do |form| %>
+            <%= form.label :vice_chair_name, "Display name", class: "block text-lg font-medium text-stone-800" %>
+            <%= form.text_field :vice_chair_name, value: leadership_profile.vice_chair_name, class: "mt-2 block w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-base text-stone-900 shadow-sm" %>
+            <%= form.label :vice_chair_photo, leadership_profile.vice_chair_photo.attached? ? "Replace photo" : "Upload photo", class: "mt-4 block text-lg font-medium text-stone-800" %>
+            <%= form.file_field :vice_chair_photo, accept: "image/png,image/jpeg,image/webp", class: "mt-2 block w-full text-base text-stone-900" %>
+            <%= form.submit "Save Vice-Chair profile", class: "mt-4 rounded-full border border-stone-300 bg-white px-4 py-2 text-base font-medium text-stone-700 transition hover:bg-stone-100" %>
+          <% end %>
+          <% if leadership_profile.vice_chair_photo.attached? %>
+            <%= button_to "Remove Vice-Chair photo", vice_chair_photo_leadership_profile_path, method: :delete, form: { class: "mt-4", onsubmit: "return confirm('Are you sure you want to remove the Vice-Chair photo?');" }, class: "rounded-full border border-red-300 bg-white px-4 py-2 text-base font-medium text-red-700 transition hover:bg-red-50" %>
+          <% end %>
+        </div>
+      </div>
+    </details>
+  </div>
+<% end %>

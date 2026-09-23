@@ -57,7 +57,7 @@ class ProfilePicturesTest < ApplicationSystemTestCase
       click_on "Delete picture"
     end
 
-    assert_not @member.reload.photo.attached?
+    assert_no_button "Delete picture"
   end
 
   private

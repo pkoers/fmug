@@ -11,13 +11,20 @@ class User < ApplicationRecord
   has_many :login_magic_links, dependent: :destroy
   has_many :registrations, dependent: :destroy
   has_many :sent_invitations, class_name: "Invitation", foreign_key: :inviter_id, dependent: :destroy
+  has_many :created_registration_campaigns, class_name: "RegistrationCampaign", foreign_key: :created_by_id, dependent: :restrict_with_exception
   has_many :conferences, through: :registrations
 
+  normalizes :email, with: ->(email) { email.to_s.strip.downcase }
+
   validates :email, :first_name, :last_name, presence: true
-  validates :email, uniqueness: true
+  validates :email, uniqueness: { case_sensitive: false }
   validate :photo_is_valid
 
   private
+
+  def self.find_by_normalized_email(email)
+    find_by("LOWER(email) = ?", email.to_s.strip.downcase)
+  end
 
   def photo_is_valid
     validate_image_attachment(:photo)

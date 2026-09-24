@@ -173,6 +173,88 @@ class MagicLinksControllerTest < ActionDispatch::IntegrationTest
     assert_nil User.find_by(email: "guest@example.com")
   end
 
+  test "activates a campaign invitation once and increments its capacity" do
+    campaign = RegistrationCampaign.create!(conference: @conference, created_by: @inviter)
+    invitation = Invitation.create!(
+      conference: @conference,
+      inviter: @inviter,
+      registration_campaign: campaign,
+      first_name: "Campaign",
+      email: "campaign@example.com"
+    )
+    magic_link = invitation.magic_links.create!(first_name: "Campaign", last_name: "Member", company_name: "Example Airlines")
+
+    post activate_magic_link_path, params: { token: magic_link.raw_token }
+
+    assert_redirected_to root_url
+    assert_equal 1, campaign.reload.successful_registrations_count
+    assert User.exists?(email: "campaign@example.com")
+
+    post activate_magic_link_path, params: { token: magic_link.raw_token }
+    assert_response :unprocessable_entity
+    assert_equal 1, campaign.reload.successful_registrations_count
+  end
+
+  test "allows user one hundred and rejects user one hundred and one" do
+    campaign = RegistrationCampaign.create!(conference: @conference, created_by: @inviter, successful_registrations_count: 99)
+    hundredth_invitation = campaign_invitation(campaign, "hundredth@example.com")
+    hundredth_link = hundredth_invitation.magic_links.create!(first_name: "Hundredth", last_name: "Member", company_name: "Example Airlines")
+
+    post activate_magic_link_path, params: { token: hundredth_link.raw_token }
+    assert_redirected_to root_url
+    assert_equal 100, campaign.reload.successful_registrations_count
+
+    next_invitation = campaign_invitation(campaign, "one-hundred-one@example.com")
+    next_link = next_invitation.magic_links.create!(first_name: "Next", last_name: "Member", company_name: "Example Airlines")
+    assert_no_difference("User.count") do
+      post activate_magic_link_path, params: { token: next_link.raw_token }
+    end
+
+    assert_response :unprocessable_entity
+    assert_equal 100, campaign.reload.successful_registrations_count
+    assert_nil next_link.reload.used_at
+  end
+
+  test "campaign activation remains valid after campaign expiry or revocation" do
+    campaign = RegistrationCampaign.create!(conference: @conference, created_by: @inviter)
+    invitation = campaign_invitation(campaign, "pending@example.com")
+    magic_link = invitation.magic_links.create!(first_name: "Pending", last_name: "Member", company_name: "Example Airlines")
+    campaign.update!(expires_at: 1.minute.ago, revoked_at: Time.current)
+
+    get magic_link_path(magic_link.raw_token)
+    assert_response :success
+    post activate_magic_link_path, params: { token: magic_link.raw_token }
+
+    assert_redirected_to root_url
+    assert_equal 1, campaign.reload.successful_registrations_count
+  end
+
+  test "campaign activation for an email that became an account does not consume capacity" do
+    campaign = RegistrationCampaign.create!(conference: @conference, created_by: @inviter)
+    invitation = campaign_invitation(campaign, "already-created@example.com")
+    magic_link = invitation.magic_links.create!(first_name: "Already", last_name: "Created", company_name: "Example Airlines")
+    User.create!(email: "already-created@example.com", first_name: "Existing", last_name: "Member", role: "Member")
+
+    post activate_magic_link_path, params: { token: magic_link.raw_token }
+
+    assert_response :unprocessable_entity
+    assert_equal 0, campaign.reload.successful_registrations_count
+    assert_nil magic_link.reload.used_at
+    assert_nil invitation.reload.used_at
+  end
+
+  private
+
+  def campaign_invitation(campaign, email)
+    Invitation.create!(
+      conference: @conference,
+      inviter: @inviter,
+      registration_campaign: campaign,
+      first_name: "Campaign",
+      email:
+    )
+  end
+
   test "rejects a blank company name without creating a magic link or sending email" do
     with_replaced_singleton_method(EmailDeliveryService, :notify, ->(**) { flunk "blank company name must not send email" }) do
       assert_no_difference("MagicLink.count") do

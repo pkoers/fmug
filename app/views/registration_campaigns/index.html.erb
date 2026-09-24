@@ -1,0 +1,24 @@
+<% content_for :title, "Launch registration campaigns" %>
+<section class="mx-auto w-full max-w-4xl rounded-3xl border border-stone-200 bg-white p-8 shadow-sm">
+  <div class="flex items-center justify-between gap-4">
+    <div>
+      <h1 class="text-4xl font-semibold text-stone-900">Launch registration campaign</h1>
+      <p class="mt-2 text-xl text-stone-600">Manage the temporary PROD launch registration link.</p>
+    </div>
+    <%= link_to "Create campaign", new_registration_campaign_path, class: "rounded-xl bg-blue-600 px-5 py-3 text-lg font-semibold text-white" %>
+  </div>
+  <div class="mt-8 space-y-4">
+    <% @registration_campaigns.each do |campaign| %>
+      <article class="rounded-2xl border border-stone-200 p-5">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-semibold text-stone-900">Conference <%= campaign.conference.edition %></h2>
+            <p class="mt-1 text-lg text-stone-600"><%= campaign.status.capitalize %> · expires <%= campaign.expires_at.strftime("%b %-d, %Y at %H:%M %Z") %></p>
+            <p class="mt-1 text-lg text-stone-600"><%= campaign.successful_registrations_count %> / <%= campaign.registration_limit %> successful registrations</p>
+          </div>
+          <%= link_to "View", registration_campaign_path(campaign), class: "rounded-xl border border-stone-300 px-4 py-2 text-lg text-stone-700" %>
+        </div>
+      </article>
+    <% end %>
+  </div>
+</section>

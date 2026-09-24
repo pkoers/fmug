@@ -54,14 +54,30 @@ class MagicLinksController < ApplicationController
       magic_link.lock!
       invitation = magic_link.invitation
       invitation.lock!
+      campaign = invitation.registration_campaign
+      campaign&.lock!
 
       next unless magic_link.usable?
 
-      user = User.find_or_create_by!(email: magic_link.invitation.email) do |record|
-        record.first_name = magic_link.first_name
-        record.last_name = magic_link.last_name
-        record.company_name = magic_link.company_name
-        record.role = "Member"
+      if campaign
+        next if campaign.full?
+        next if User.exists?(email: invitation.email)
+
+        user = User.create!(
+          email: invitation.email,
+          first_name: magic_link.first_name,
+          last_name: magic_link.last_name,
+          company_name: magic_link.company_name,
+          role: "Member"
+        )
+        campaign.increment!(:successful_registrations_count)
+      else
+        user = User.find_or_create_by!(email: invitation.email) do |record|
+          record.first_name = magic_link.first_name
+          record.last_name = magic_link.last_name
+          record.company_name = magic_link.company_name
+          record.role = "Member"
+        end
       end
 
       magic_link.mark_as_used!
@@ -77,6 +93,8 @@ class MagicLinksController < ApplicationController
     session[:user_id] = user.id
 
     redirect_to root_path, notice: "Your account has been activated and you are now signed in."
+  rescue ActiveRecord::RecordNotUnique
+    render :invalid, status: :unprocessable_entity
   end
 
   private

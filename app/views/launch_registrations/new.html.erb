@@ -2,9 +2,9 @@
   <h1 class="text-4xl font-semibold text-stone-900">Join FMUG</h1>
   <p class="mt-3 text-xl text-stone-600">Complete your details and we will send an activation link to your email address.</p>
 
-  <% if @invitation.errors.any? %>
+  <% if @invitation.errors.any? || @magic_link&.errors&.any? %>
     <div class="mt-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
-      <%= @invitation.errors.full_messages.to_sentence %>
+      <%= [ @invitation.errors.full_messages, @magic_link&.errors&.full_messages ].flatten.to_sentence %>
     </div>
   <% end %>
 
@@ -15,11 +15,11 @@
     </div>
     <div>
       <%= form.label :last_name, class: "block text-lg font-medium text-stone-800" %>
-      <%= form.text_field :last_name, required: true, autocomplete: "family-name", class: "mt-2 w-full rounded-xl border border-stone-300 px-4 py-3 text-lg" %>
+      <%= form.text_field :last_name, value: @magic_link&.last_name, required: true, autocomplete: "family-name", class: "mt-2 w-full rounded-xl border border-stone-300 px-4 py-3 text-lg" %>
     </div>
     <div>
       <%= form.label :company_name, "Company", class: "block text-lg font-medium text-stone-800" %>
-      <%= form.text_field :company_name, required: true, autocomplete: "organization", class: "mt-2 w-full rounded-xl border border-stone-300 px-4 py-3 text-lg" %>
+      <%= form.text_field :company_name, value: @magic_link&.company_name, required: true, autocomplete: "organization", class: "mt-2 w-full rounded-xl border border-stone-300 px-4 py-3 text-lg" %>
     </div>
     <div>
       <%= form.label :email, "Email address", class: "block text-lg font-medium text-stone-800" %>

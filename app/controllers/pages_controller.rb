@@ -33,7 +33,7 @@ class PagesController < ApplicationController
   end
 
   def set_invited_user_state
-    @invited_user = User.find_by(email: @invitation.email)
+    @invited_user = User.find_by_normalized_email(@invitation.email)
     @invited_user_exists = @invited_user.present?
     return unless @invited_user_exists
 

@@ -26,4 +26,10 @@ class RegistrationCampaignTest < ActiveSupport::TestCase
     assert_equal "full", @campaign.status
     assert_not @campaign.accepting_registrations?
   end
+
+  test "database permits only one campaign for a conference" do
+    assert_raises ActiveRecord::RecordNotUnique do
+      RegistrationCampaign.create!(conference: @campaign.conference, created_by: @admin)
+    end
+  end
 end

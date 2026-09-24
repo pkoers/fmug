@@ -34,6 +34,37 @@ class RegistrationCampaignsControllerTest < ActionDispatch::IntegrationTest
     assert campaign.reload.revoked?
   end
 
+  test "does not create a replacement campaign after the first campaign changes state" do
+    sign_in_as(@admin)
+    post registration_campaigns_path
+    campaign = RegistrationCampaign.last
+
+    [ -> { campaign.revoke! }, -> { campaign.update!(revoked_at: nil, expires_at: 1.minute.ago) }, -> { campaign.update!(expires_at: 1.day.from_now, successful_registrations_count: 100) } ].each do |change_state|
+      change_state.call
+
+      assert_no_difference("RegistrationCampaign.count") do
+        post registration_campaigns_path
+      end
+
+      assert_redirected_to registration_campaign_path(campaign)
+      assert_equal campaign, RegistrationCampaign.find_by(conference: conferences(:one))
+    end
+  end
+
+  test "does not create a second campaign for an active conference" do
+    sign_in_as(@admin)
+    post registration_campaigns_path
+    campaign = RegistrationCampaign.last
+
+    assert_no_difference("RegistrationCampaign.count") do
+      post registration_campaigns_path
+    end
+
+    assert_redirected_to registration_campaign_path(campaign)
+    get new_registration_campaign_path
+    assert_redirected_to registration_campaign_path(campaign)
+  end
+
   private
 
   def sign_in_as(user)

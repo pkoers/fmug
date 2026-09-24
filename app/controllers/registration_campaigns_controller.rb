@@ -4,9 +4,16 @@ class RegistrationCampaignsController < ApplicationController
 
   def index
     @registration_campaigns = RegistrationCampaign.includes(:conference, :created_by).order(created_at: :desc)
+    @current_conference = Conference.find_by(current: true)
   end
 
   def new
+    existing_campaign = RegistrationCampaign.find_by(conference: Conference.find_by(current: true))
+    if existing_campaign
+      redirect_to registration_campaign_path(existing_campaign), notice: "This conference already has a launch registration campaign."
+      return
+    end
+
     @registration_campaign = RegistrationCampaign.new
   end
 
@@ -18,6 +25,12 @@ class RegistrationCampaignsController < ApplicationController
       return
     end
 
+    existing_campaign = RegistrationCampaign.find_by(conference:)
+    if existing_campaign
+      redirect_to registration_campaign_path(existing_campaign), notice: "This conference already has a launch registration campaign."
+      return
+    end
+
     @registration_campaign = RegistrationCampaign.new(conference:, created_by: current_user)
 
     if @registration_campaign.save
@@ -26,6 +39,9 @@ class RegistrationCampaignsController < ApplicationController
     else
       render :new, status: :unprocessable_entity
     end
+  rescue ActiveRecord::RecordNotUnique
+    existing_campaign = RegistrationCampaign.find_by!(conference:)
+    redirect_to registration_campaign_path(existing_campaign), notice: "This conference already has a launch registration campaign."
   end
 
   def show

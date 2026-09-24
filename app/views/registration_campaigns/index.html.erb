@@ -5,7 +5,9 @@
       <h1 class="text-4xl font-semibold text-stone-900">Launch registration campaign</h1>
       <p class="mt-2 text-xl text-stone-600">Manage the temporary PROD launch registration link.</p>
     </div>
-    <%= link_to "Create campaign", new_registration_campaign_path, class: "rounded-xl bg-blue-600 px-5 py-3 text-lg font-semibold text-white" %>
+    <% unless @current_conference&.registration_campaign %>
+      <%= link_to "Create campaign", new_registration_campaign_path, class: "rounded-xl bg-blue-600 px-5 py-3 text-lg font-semibold text-white" %>
+    <% end %>
   </div>
   <div class="mt-8 space-y-4">
     <% @registration_campaigns.each do |campaign| %>

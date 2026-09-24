@@ -13,21 +13,32 @@ class LaunchRegistrationsController < ApplicationController
         inviter: @campaign.created_by
       )
     )
+    @magic_link = @invitation.magic_links.build(magic_link_attributes)
 
-    unless @invitation.valid?
+    unless @invitation.valid? & @magic_link.valid?
       render :new, status: :unprocessable_entity
       return
     end
 
-    magic_link = nil
     created = false
     ActiveRecord::Base.transaction do
       @campaign.lock!
       next unless @campaign.accepting_registrations?
-      next if User.exists?(email: @invitation.email)
+      next if User.find_by_normalized_email(@invitation.email)
 
       @invitation.save!
-      magic_link = @invitation.magic_links.create!(magic_link_attributes)
+      @magic_link.save!
+
+      EmailDeliveryService.notify(
+        to: @invitation.email,
+        subject: helpers.magic_link_email_subject,
+        body: helpers.magic_link_email_body(@magic_link),
+        html_body: helpers.magic_link_email_html_body(@magic_link),
+        from_name: "FMUG Chair",
+        from_email: "chair@fmug.eu",
+        delivery: :brevo
+      )
+
       created = true
     end
 
@@ -36,17 +47,9 @@ class LaunchRegistrationsController < ApplicationController
       return
     end
 
-    EmailDeliveryService.notify(
-      to: @invitation.email,
-      subject: helpers.magic_link_email_subject,
-      body: helpers.magic_link_email_body(magic_link),
-      html_body: helpers.magic_link_email_html_body(magic_link),
-      from_name: "FMUG Chair",
-      from_email: "chair@fmug.eu",
-      delivery: :brevo
-    )
-
     redirect_to launch_registration_path(params[:token]), notice: submission_notice
+  rescue BrevoEmailService::Error
+    redirect_to launch_registration_path(params[:token]), alert: "We could not send an activation link. Please try again."
   rescue ActiveRecord::RecordNotUnique
     redirect_to launch_registration_path(params[:token]), notice: submission_notice
   end

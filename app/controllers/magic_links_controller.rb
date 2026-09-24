@@ -9,7 +9,7 @@ class MagicLinksController < ApplicationController
       return
     end
 
-    if User.exists?(email: invitation.email)
+    if User.find_by_normalized_email(invitation.email)
       redirect_to root_path(invitation_token: invitation.raw_token || magic_link_params[:invitation_token]), alert: "An account already exists for this invitation."
       return
     end
@@ -61,7 +61,7 @@ class MagicLinksController < ApplicationController
 
       if campaign
         next if campaign.full?
-        next if User.exists?(email: invitation.email)
+        next if User.find_by_normalized_email(invitation.email)
 
         user = User.create!(
           email: invitation.email,

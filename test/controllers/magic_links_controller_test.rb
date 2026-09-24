@@ -243,6 +243,30 @@ class MagicLinksControllerTest < ActionDispatch::IntegrationTest
     assert_nil invitation.reload.used_at
   end
 
+  test "campaign activation does not create a case-variant duplicate account" do
+    campaign = RegistrationCampaign.create!(conference: @conference, created_by: @inviter)
+    invitation = campaign_invitation(campaign, "case-member@example.com")
+    magic_link = invitation.magic_links.create!(first_name: "Case", last_name: "Member", company_name: "Example Airlines")
+    now = Time.current
+    User.insert_all!([ {
+      email: "Case-Member@Example.com",
+      first_name: "Existing",
+      last_name: "Member",
+      role: "Member",
+      created_at: now,
+      updated_at: now
+    } ])
+
+    assert_no_difference("User.count") do
+      post activate_magic_link_path, params: { token: magic_link.raw_token }
+    end
+
+    assert_response :unprocessable_entity
+    assert_equal 0, campaign.reload.successful_registrations_count
+    assert_nil magic_link.reload.used_at
+    assert_nil invitation.reload.used_at
+  end
+
   private
 
   def campaign_invitation(campaign, email)

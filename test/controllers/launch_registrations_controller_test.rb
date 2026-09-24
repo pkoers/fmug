@@ -11,6 +11,10 @@ class LaunchRegistrationsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "Send activation link"
+    assert_includes response.body, "min-h-[calc(100vh-7rem)]"
+    assert_select "section.flex.w-full.items-center.justify-center", count: 1 do
+      assert_select "div.mx-auto.w-full.max-w-xl", count: 1
+    end
   end
 
   test "submits a campaign invitation and normal magic link without creating a user" do

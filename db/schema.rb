@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_23_212646) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_24_170100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -80,12 +80,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_23_212646) do
     t.datetime "expires_at", null: false
     t.string "first_name", null: false
     t.bigint "inviter_id", null: false
+    t.bigint "registration_campaign_id"
     t.string "token_digest", null: false
     t.datetime "updated_at", null: false
     t.datetime "used_at"
+    t.index "registration_campaign_id, lower((email)::text)", name: "index_campaign_invitations_on_normalized_email", unique: true, where: "(registration_campaign_id IS NOT NULL)"
     t.index ["conference_id"], name: "index_invitations_on_conference_id"
     t.index ["email"], name: "index_invitations_on_email"
     t.index ["inviter_id"], name: "index_invitations_on_inviter_id"
+    t.index ["registration_campaign_id"], name: "index_invitations_on_registration_campaign_id"
     t.index ["token_digest"], name: "index_invitations_on_token_digest", unique: true
   end
 
@@ -122,6 +125,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_23_212646) do
     t.datetime "used_at"
     t.index ["invitation_id"], name: "index_magic_links_on_invitation_id"
     t.index ["token_digest"], name: "index_magic_links_on_token_digest", unique: true
+  end
+
+  create_table "registration_campaigns", force: :cascade do |t|
+    t.bigint "conference_id", null: false
+    t.datetime "created_at", null: false
+    t.bigint "created_by_id", null: false
+    t.datetime "expires_at", null: false
+    t.integer "registration_limit", default: 100, null: false
+    t.datetime "revoked_at"
+    t.integer "successful_registrations_count", default: 0, null: false
+    t.string "token_digest", null: false
+    t.datetime "updated_at", null: false
+    t.index ["conference_id"], name: "index_registration_campaigns_on_conference_id"
+    t.index ["conference_id"], name: "index_registration_campaigns_on_unique_conference", unique: true
+    t.index ["created_by_id"], name: "index_registration_campaigns_on_created_by_id"
+    t.index ["token_digest"], name: "index_registration_campaigns_on_token_digest", unique: true
+    t.check_constraint "registration_limit = 100", name: "registration_campaigns_fixed_limit"
+    t.check_constraint "successful_registrations_count <= registration_limit", name: "registration_campaigns_count_within_limit"
+    t.check_constraint "successful_registrations_count >= 0", name: "registration_campaigns_nonnegative_count"
   end
 
   create_table "registrations", force: :cascade do |t|
@@ -164,6 +186,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_23_212646) do
     t.string "last_name", null: false
     t.string "role", null: false
     t.datetime "updated_at", null: false
+    t.index "lower((email)::text)", name: "index_users_on_normalized_email", unique: true
     t.index ["company_id"], name: "index_users_on_company_id"
     t.index ["email"], name: "index_users_on_email", unique: true
   end
@@ -172,9 +195,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_23_212646) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "identities", "users"
   add_foreign_key "invitations", "conferences"
+  add_foreign_key "invitations", "registration_campaigns"
   add_foreign_key "invitations", "users", column: "inviter_id"
   add_foreign_key "login_magic_links", "users"
   add_foreign_key "magic_links", "invitations"
+  add_foreign_key "registration_campaigns", "conferences"
+  add_foreign_key "registration_campaigns", "users", column: "created_by_id"
   add_foreign_key "registrations", "conferences"
   add_foreign_key "registrations", "users"
   add_foreign_key "schedules", "conferences"

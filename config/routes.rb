@@ -3,6 +3,9 @@ Rails.application.routes.draw do
   resources :conferences do
     resources :registrations, only: [ :index ]
   end
+  resources :registration_campaigns, only: [ :index, :new, :create, :show ] do
+    post :revoke, on: :member
+  end
   resources :users, only: [ :index, :destroy ] do
     patch :admin, on: :member
   end
@@ -15,6 +18,8 @@ Rails.application.routes.draw do
   resources :magic_links, only: [ :create ]
   resources :login_magic_links, only: [ :create ]
   resource :registration, only: [ :create, :destroy ]
+  get "/launch-registration/:token", to: "launch_registrations#new", as: :launch_registration
+  post "/launch-registration/:token", to: "launch_registrations#create"
   get "/magic-links/:token", to: "magic_links#show", as: :magic_link
   post "/magic-links/activate", to: "magic_links#activate", as: :activate_magic_link
   get "/login-magic-links/:token", to: "login_magic_links#show", as: :login_magic_link

@@ -1,4 +1,5 @@
 require "test_helper"
+require "stringio"
 
 class BrevoEmailServiceTest < ActiveSupport::TestCase
   FakeResponse = Struct.new(:code, :body)
@@ -81,6 +82,32 @@ class BrevoEmailServiceTest < ActiveSupport::TestCase
     end
   end
 
+  test "deliver translates an open timeout into a stable service error" do
+    assert_transport_error(Net::OpenTimeout.new("open timeout"))
+  end
+
+  test "deliver translates a read timeout into a stable service error" do
+    assert_transport_error(Net::ReadTimeout.new)
+  end
+
+  test "deliver translates a socket error into a stable service error" do
+    assert_transport_error(SocketError.new("DNS lookup failed"))
+  end
+
+  test "deliver translates a connection refused error into a stable service error" do
+    assert_transport_error(Errno::ECONNREFUSED.new)
+  end
+
+  test "deliver does not translate unexpected errors" do
+    with_replaced_singleton_method(Net::HTTP, :start, ->(*) { raise ArgumentError, "unexpected failure" }) do
+      error = assert_raises(ArgumentError) do
+        BrevoEmailService.new(api_key: "test-api-key").deliver(notification_mail)
+      end
+
+      assert_equal "unexpected failure", error.message
+    end
+  end
+
   test "payload_for builds the preview JSON payload" do
     mail = NotificationMailer.with(
       to: "member@example.com",
@@ -114,6 +141,34 @@ class BrevoEmailServiceTest < ActiveSupport::TestCase
   end
 
   private
+
+  def assert_transport_error(transport_error)
+    log_output = StringIO.new
+    logger = ActiveSupport::Logger.new(log_output)
+
+    with_replaced_singleton_method(Rails, :logger, -> { logger }) do
+      with_replaced_singleton_method(Net::HTTP, :start, ->(*) { raise transport_error }) do
+        error = assert_raises(BrevoEmailService::Error) do
+          BrevoEmailService.new(api_key: "test-api-key").deliver(notification_mail)
+        end
+
+        assert_equal BrevoEmailService::TRANSPORT_ERROR_MESSAGE, error.message
+        assert_same transport_error, error.cause
+      end
+    end
+
+    assert_includes log_output.string, transport_error.class.name
+    assert_includes log_output.string, transport_error.message
+    refute_includes log_output.string, "member@example.com"
+  end
+
+  def notification_mail
+    NotificationMailer.with(
+      to: "member@example.com",
+      subject: "FMUG update",
+      body: "Conference registration is open."
+    ).notify
+  end
 
   def with_replaced_singleton_method(object, method_name, implementation)
     singleton_class = object.singleton_class

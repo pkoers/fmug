@@ -3,6 +3,7 @@ class Invitation < ApplicationRecord
 
   belongs_to :conference
   belongs_to :inviter, class_name: "User"
+  belongs_to :registration_campaign, optional: true
   has_many :magic_links, dependent: :destroy
 
   attr_reader :raw_token

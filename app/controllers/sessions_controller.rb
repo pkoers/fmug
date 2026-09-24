@@ -8,7 +8,7 @@ class SessionsController < ApplicationController
     end
 
     identity = Identity.find_or_initialize_by(provider: auth.provider, uid: auth.uid)
-    user = identity.user || User.find_by(email: auth.info.email)
+    user = identity.user || User.find_by_normalized_email(auth.info.email)
 
     unless user
       user = User.create!(

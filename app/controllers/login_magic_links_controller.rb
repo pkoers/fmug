@@ -2,7 +2,7 @@ class LoginMagicLinksController < ApplicationController
   before_action :redirect_if_logged_in, only: :create
 
   def create
-    user = User.find_by(email: login_magic_link_params[:email].to_s.strip.downcase)
+    user = User.find_by_normalized_email(login_magic_link_params[:email])
 
     unless user
       redirect_to root_path, alert: "No FMUG account was found for that email address."

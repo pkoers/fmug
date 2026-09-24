@@ -1,10 +1,26 @@
 require "json"
 require "net/http"
+require "openssl"
 
 class BrevoEmailService
   API_URL = ENV.fetch("BREVO_EMAIL_API_URL", "https://api.brevo.com/v3/smtp/email")
 
   Error = Class.new(StandardError)
+  TRANSPORT_ERRORS = [
+    Net::OpenTimeout,
+    Net::ReadTimeout,
+    SocketError,
+    Errno::ECONNREFUSED,
+    Errno::ECONNRESET,
+    Errno::ECONNABORTED,
+    Errno::EPIPE,
+    Errno::ETIMEDOUT,
+    Errno::EHOSTUNREACH,
+    Errno::ENETUNREACH,
+    EOFError,
+    OpenSSL::SSL::SSLError
+  ].freeze
+  TRANSPORT_ERROR_MESSAGE = "Brevo email delivery failed"
 
   def self.deliver(...)
     new.deliver(...)
@@ -40,6 +56,9 @@ class BrevoEmailService
     return parsed_body if response.code.to_i.between?(200, 299)
 
     raise Error, "Brevo API request failed (status #{response.code}): #{body}"
+  rescue *TRANSPORT_ERRORS => error
+    Rails.logger.warn("Brevo email delivery transport failure: #{error.class}: #{error.message}")
+    raise Error, TRANSPORT_ERROR_MESSAGE, cause: error
   end
 
   def payload_for(message)

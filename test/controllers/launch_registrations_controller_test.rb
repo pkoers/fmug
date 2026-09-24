@@ -106,6 +106,38 @@ class LaunchRegistrationsControllerTest < ActionDispatch::IntegrationTest
     assert Invitation.last.magic_links.last.usable?
   end
 
+  test "rolls back and retries through the Brevo transport error boundary" do
+    with_brevo_api_key do
+      with_replaced_singleton_method(Net::HTTP, :start, ->(*) { raise Net::OpenTimeout, "simulated timeout" }) do
+        assert_no_difference([ "Invitation.count", "MagicLink.count", "User.count" ]) do
+          post launch_registration_path(@campaign.raw_token), params: { launch_registration: registration_attributes }
+        end
+      end
+
+      assert_redirected_to launch_registration_path(@campaign.raw_token)
+      assert_equal "We could not send an activation link. Please try again.", flash[:alert]
+      assert_equal 0, @campaign.reload.successful_registrations_count
+
+      delivery_payload = {}
+      with_replaced_singleton_method(Net::HTTP, :start, successful_brevo_delivery(delivery_payload)) do
+        assert_difference([ "Invitation.count", "MagicLink.count" ], 1) do
+          post launch_registration_path(@campaign.raw_token), params: { launch_registration: registration_attributes }
+        end
+      end
+
+      magic_link = Invitation.last.magic_links.last
+      assert magic_link.usable?
+      token = JSON.parse(delivery_payload.fetch(:body)).fetch("textContent")[/magic-links\/([^\s]+)/, 1]
+      assert token.present?
+
+      post activate_magic_link_path, params: { token: }
+
+      assert_redirected_to root_url
+      assert User.exists?(email: "guest@example.com")
+      assert_equal 1, @campaign.reload.successful_registrations_count
+    end
+  end
+
   test "rejects unknown revoked expired and full campaigns" do
     get launch_registration_path("not-a-real-token")
     assert_response :unprocessable_entity
@@ -136,5 +168,38 @@ class LaunchRegistrationsControllerTest < ActionDispatch::IntegrationTest
     yield
   ensure
     singleton_class.define_method(:notify, original_method)
+  end
+
+  def with_replaced_singleton_method(object, method_name, implementation)
+    singleton_class = object.singleton_class
+    original_method = singleton_class.instance_method(method_name) if singleton_class.method_defined?(method_name)
+
+    singleton_class.define_method(method_name, implementation)
+    yield
+  ensure
+    if original_method
+      singleton_class.define_method(method_name, original_method)
+    else
+      singleton_class.remove_method(method_name)
+    end
+  end
+
+  def successful_brevo_delivery(delivery_payload)
+    ->(_hostname, _port, use_ssl:, &block) {
+      http = Object.new
+      http.define_singleton_method(:request) do |request|
+        delivery_payload[:body] = request.body
+        Struct.new(:code, :body).new("201", '{"messageId":"<abc123@example.com>"}')
+      end
+      block.call(http)
+    }
+  end
+
+  def with_brevo_api_key
+    previous_value = ENV["BREVO_API_KEY"]
+    ENV["BREVO_API_KEY"] = "test-api-key"
+    yield
+  ensure
+    ENV["BREVO_API_KEY"] = previous_value
   end
 end

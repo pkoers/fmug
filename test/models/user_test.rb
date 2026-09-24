@@ -12,6 +12,38 @@ class UserTest < ActiveSupport::TestCase
     assert user.valid?
   end
 
+  test "normalizes email addresses and rejects case-insensitive duplicates" do
+    user = User.create!(email: " Member@Example.COM ", first_name: "Member", last_name: "User", role: "Member")
+    duplicate = User.new(email: "MEMBER@example.com", first_name: "Duplicate", last_name: "User", role: "Member")
+
+    assert_equal "member@example.com", user.email
+    assert_not duplicate.valid?
+    assert_includes duplicate.errors[:email], "has already been taken"
+  end
+
+  test "database rejects case-insensitive duplicates that bypass model validation" do
+    now = Time.current
+    User.insert_all!([ {
+      email: "RaceMember@Example.com",
+      first_name: "Race",
+      last_name: "Member",
+      role: "Member",
+      created_at: now,
+      updated_at: now
+    } ])
+
+    assert_raises ActiveRecord::RecordNotUnique do
+      User.insert_all!([ {
+        email: "racemember@example.com",
+        first_name: "Duplicate",
+        last_name: "Member",
+        role: "Member",
+        created_at: now,
+        updated_at: now
+      } ])
+    end
+  end
+
   test "user accepts supported profile picture formats" do
     %w[image/png image/jpeg image/jpg image/webp].each do |content_type|
       user = User.new(email: "#{content_type.delete('/')}-member@example.com", first_name: "Member", last_name: "User")

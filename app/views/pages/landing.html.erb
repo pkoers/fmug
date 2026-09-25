@@ -313,9 +313,9 @@ end %>
             <%= button_to "Logout", logout_path, method: :delete, class: "landing-auth__button" %>
           <% else %>
             <button type="button" id="login-magic-link-open" class="landing-auth__button">Login</button>
-            <% if google_oauth_configured? %>
+            <% if google_oauth_login_button_visible? %>
               <%= button_to "Login with Google", "/auth/google_oauth2", method: :post, class: "landing-auth__button" %>
-            <% else %>
+            <% elsif !google_oauth_configured? %>
               <span class="landing-auth__meta">Google login is not configured yet.</span>
             <% end %>
           <% end %>

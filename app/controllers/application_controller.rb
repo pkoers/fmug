@@ -2,7 +2,7 @@ class ApplicationController < ActionController::Base
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
   allow_browser versions: :modern
 
-  helper_method :current_user, :logged_in?, :google_oauth_configured?
+  helper_method :current_user, :logged_in?, :google_oauth_configured?, :google_oauth_login_button_visible?
 
   private
 
@@ -18,6 +18,10 @@ class ApplicationController < ActionController::Base
     ENV["GOOGLE_CLIENT_ID"].present? && ENV["GOOGLE_CLIENT_SECRET"].present?
   end
 
+  def google_oauth_login_button_visible?
+    google_oauth_configured? && google_oauth_host != "fmug.eu"
+  end
+
   def require_login
     return if logged_in?
 
@@ -28,5 +32,12 @@ class ApplicationController < ActionController::Base
     return if logged_in? && current_user.admin?
 
     redirect_to root_path, alert: "You are not authorized to perform that action."
+  end
+
+  def google_oauth_host
+    app_url = ENV["APP_URL"].presence
+    return unless app_url
+
+    URI.parse(app_url[%r{\Ahttps?://}i] ? app_url : "https://#{app_url}").host&.downcase
   end
 end

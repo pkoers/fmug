@@ -186,6 +186,100 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Privacy"
   end
 
+  test "hides Google login on PROD01 while keeping magic-link login available" do
+    with_environment(
+      "GOOGLE_CLIENT_ID" => "client-id",
+      "GOOGLE_CLIENT_SECRET" => "client-secret",
+      "APP_URL" => "fmug.eu"
+    ) do
+      get root_path
+    end
+
+    assert_response :success
+    assert_not_includes response.body, "Login with Google"
+    assert_select "button#login-magic-link-open", text: "Login"
+    assert_not_includes response.body, "Google login is not configured yet."
+  end
+
+  test "shows Google login on a non-PROD01 host when configured" do
+    with_environment(
+      "GOOGLE_CLIENT_ID" => "client-id",
+      "GOOGLE_CLIENT_SECRET" => "client-secret",
+      "APP_URL" => "https://lab.fmug.eu"
+    ) do
+      get root_path
+    end
+
+    assert_response :success
+    assert_includes response.body, "Login with Google"
+    assert_not_includes response.body, "Google login is not configured yet."
+  end
+
+  test "shows the Google configuration message when credentials are missing" do
+    with_environment(
+      "GOOGLE_CLIENT_ID" => nil,
+      "GOOGLE_CLIENT_SECRET" => nil,
+      "APP_URL" => "fmug.eu"
+    ) do
+      get root_path
+    end
+
+    assert_response :success
+    assert_not_includes response.body, "Login with Google"
+    assert_includes response.body, "Google login is not configured yet."
+  end
+
+  test "shows Google login when APP_URL is blank and credentials are configured" do
+    with_environment(
+      "GOOGLE_CLIENT_ID" => "client-id",
+      "GOOGLE_CLIENT_SECRET" => "client-secret",
+      "APP_URL" => nil
+    ) do
+      get root_path
+    end
+
+    assert_response :success
+    assert_includes response.body, "Login with Google"
+  end
+
+  test "recognizes PROD01 host without regard to case" do
+    with_environment(
+      "GOOGLE_CLIENT_ID" => "client-id",
+      "GOOGLE_CLIENT_SECRET" => "client-secret",
+      "APP_URL" => "FMUG.EU"
+    ) do
+      get root_path
+    end
+
+    assert_response :success
+    assert_not_includes response.body, "Login with Google"
+  end
+
+  test "keeps logged-in landing controls unchanged" do
+    user = User.create!(
+      email: "member@example.com",
+      first_name: "Member",
+      last_name: "User",
+      role: "Member"
+    )
+    login_magic_link = user.login_magic_links.create!
+
+    with_environment(
+      "GOOGLE_CLIENT_ID" => "client-id",
+      "GOOGLE_CLIENT_SECRET" => "client-secret",
+      "APP_URL" => "https://lab.fmug.eu"
+    ) do
+      get login_magic_link_path(login_magic_link.raw_token)
+      get root_path
+    end
+
+    assert_response :success
+    assert_includes response.body, "Signed in as #{user.email}"
+    assert_includes response.body, "Logout"
+    assert_select "button#login-magic-link-open", count: 0
+    assert_not_includes response.body, "Login with Google"
+  end
+
   test "renders the privacy page from markdown content" do
     get privacy_path
 
@@ -220,5 +314,16 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
 
     assert_includes response.body, ">Chair<"
     assert_includes response.body, ">Vice-Chair<"
+  end
+
+  private
+
+  def with_environment(variables)
+    previous_values = variables.keys.to_h { |key| [ key, ENV[key] ] }
+    variables.each { |key, value| value.nil? ? ENV.delete(key) : ENV[key] = value }
+
+    yield
+  ensure
+    previous_values.each { |key, value| value.nil? ? ENV.delete(key) : ENV[key] = value }
   end
 end

@@ -20,6 +20,27 @@ class RegistrationCampaign < ApplicationRecord
     less_than_or_equal_to: :registration_limit
   }
 
+  scope :active, -> {
+    where(revoked_at: nil)
+      .where("expires_at > ?", Time.current)
+      .where("successful_registrations_count < registration_limit")
+  }
+
+  def self.active_for(conference)
+    return unless conference
+
+    where(conference:).active.order(created_at: :desc).first
+  end
+
+  def self.start_for!(conference:, created_by:)
+    conference.with_lock do
+      active_campaign = active_for(conference)
+      return [ active_campaign, false ] if active_campaign
+
+      [ create!(conference:, created_by:), true ]
+    end
+  end
+
   def expired?
     expires_at <= Time.current
   end

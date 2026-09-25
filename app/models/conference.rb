@@ -2,7 +2,7 @@ class Conference < ApplicationRecord
   has_one_attached :image, dependent: :purge
   has_many :schedules, dependent: :destroy
   has_many :registrations, dependent: :destroy
-  has_one :registration_campaign, dependent: :restrict_with_exception
+  has_many :registration_campaigns, dependent: :restrict_with_exception
   has_many :users, through: :registrations
 
   scope :current_conference, -> { where(current: true) }

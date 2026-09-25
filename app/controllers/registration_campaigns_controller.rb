@@ -5,12 +5,13 @@ class RegistrationCampaignsController < ApplicationController
   def index
     @registration_campaigns = RegistrationCampaign.includes(:conference, :created_by).order(created_at: :desc)
     @current_conference = Conference.find_by(current: true)
+    @active_campaign = RegistrationCampaign.active_for(@current_conference) if @current_conference
   end
 
   def new
-    existing_campaign = RegistrationCampaign.find_by(conference: Conference.find_by(current: true))
-    if existing_campaign
-      redirect_to registration_campaign_path(existing_campaign), notice: "This conference already has a launch registration campaign."
+    active_campaign = RegistrationCampaign.active_for(Conference.find_by(current: true))
+    if active_campaign
+      redirect_to registration_campaign_path(active_campaign), notice: "This conference already has an active launch registration campaign."
       return
     end
 
@@ -25,26 +26,18 @@ class RegistrationCampaignsController < ApplicationController
       return
     end
 
-    existing_campaign = RegistrationCampaign.find_by(conference:)
-    if existing_campaign
-      redirect_to registration_campaign_path(existing_campaign), notice: "This conference already has a launch registration campaign."
-      return
-    end
+    @registration_campaign, created = RegistrationCampaign.start_for!(conference:, created_by: current_user)
 
-    @registration_campaign = RegistrationCampaign.new(conference:, created_by: current_user)
-
-    if @registration_campaign.save
+    if created
       @campaign_url = launch_registration_url(@registration_campaign.raw_token)
       render :show, status: :created
     else
-      render :new, status: :unprocessable_entity
+      redirect_to registration_campaign_path(@registration_campaign), notice: "This conference already has an active launch registration campaign."
     end
-  rescue ActiveRecord::RecordNotUnique
-    existing_campaign = RegistrationCampaign.find_by!(conference:)
-    redirect_to registration_campaign_path(existing_campaign), notice: "This conference already has a launch registration campaign."
   end
 
   def show
+    @active_campaign = RegistrationCampaign.active_for(@registration_campaign.conference)
   end
 
   def revoke

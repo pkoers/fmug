@@ -27,9 +27,20 @@ class RegistrationCampaignTest < ActiveSupport::TestCase
     assert_not @campaign.accepting_registrations?
   end
 
-  test "database permits only one campaign for a conference" do
-    assert_raises ActiveRecord::RecordNotUnique do
-      RegistrationCampaign.create!(conference: @campaign.conference, created_by: @admin)
-    end
+  test "starts a replacement only after the active campaign ends" do
+    active_campaign, created = RegistrationCampaign.start_for!(conference: @campaign.conference, created_by: @admin)
+
+    assert_not created
+    assert_equal @campaign, active_campaign
+
+    @campaign.revoke!
+    replacement, created = RegistrationCampaign.start_for!(conference: @campaign.conference, created_by: @admin)
+
+    assert created
+    assert_not_equal @campaign, replacement
+    assert_not_equal @campaign.token_digest, replacement.token_digest
+    assert_equal 0, replacement.successful_registrations_count
+    assert_equal RegistrationCampaign::REGISTRATION_LIMIT, replacement.registration_limit
+    assert_equal [ @campaign, replacement ].sort_by(&:id), @campaign.conference.registration_campaigns.order(:id).to_a
   end
 end

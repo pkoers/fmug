@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_24_170100) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_25_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -138,7 +138,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_24_170100) do
     t.string "token_digest", null: false
     t.datetime "updated_at", null: false
     t.index ["conference_id"], name: "index_registration_campaigns_on_conference_id"
-    t.index ["conference_id"], name: "index_registration_campaigns_on_unique_conference", unique: true
     t.index ["created_by_id"], name: "index_registration_campaigns_on_created_by_id"
     t.index ["token_digest"], name: "index_registration_campaigns_on_token_digest", unique: true
     t.check_constraint "registration_limit = 100", name: "registration_campaigns_fixed_limit"

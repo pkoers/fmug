@@ -158,6 +158,31 @@ class LaunchRegistrationsControllerTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_entity
   end
 
+  test "keeps terminal shared URLs invalid after replacements start" do
+    campaign = @campaign
+
+    [
+      -> { campaign.revoke! },
+      -> { campaign.update!(revoked_at: nil, expires_at: 1.minute.ago) },
+      -> { campaign.update!(expires_at: 1.day.from_now, successful_registrations_count: 100) }
+    ].each do |end_campaign|
+      old_token = campaign.raw_token
+      end_campaign.call
+      replacement, created = RegistrationCampaign.start_for!(conference: campaign.conference, created_by: @admin)
+
+      assert created
+      assert_not_equal old_token, replacement.raw_token
+
+      get launch_registration_path(old_token)
+      assert_response :unprocessable_entity
+
+      get launch_registration_path(replacement.raw_token)
+      assert_response :success
+
+      campaign = replacement
+    end
+  end
+
   private
 
   def registration_attributes(email: "guest@example.com")

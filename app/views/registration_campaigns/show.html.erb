@@ -11,8 +11,10 @@
       <p class="mt-2 break-all text-stone-700"><%= @campaign_url %></p>
     </div>
   <% end %>
-  <% unless @registration_campaign.revoked? %>
+  <% if @registration_campaign.accepting_registrations? %>
     <%= button_to "Revoke campaign", revoke_registration_campaign_path(@registration_campaign), method: :post, class: "mt-8 rounded-xl bg-red-600 px-6 py-3 text-lg font-semibold text-white", data: { turbo_confirm: "Revoke this campaign? Existing personal activation links will remain usable." } %>
+  <% elsif @registration_campaign.conference.current? && !@active_campaign %>
+    <%= link_to "Start new campaign", new_registration_campaign_path, class: "mt-8 inline-flex rounded-xl bg-blue-600 px-6 py-3 text-lg font-semibold text-white" %>
   <% end %>
   <%= link_to "Back to campaigns", registration_campaigns_path, class: "mt-6 inline-flex text-lg text-stone-700 underline" %>
 </section>

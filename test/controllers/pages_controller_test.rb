@@ -21,7 +21,7 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     Registration.create!(
       user: user,
       conference: @conference,
-      attending_physically: true,
+      attendance_status: "physical",
       agenda_nothing_to_present: true
     )
     invitation = Invitation.create!(
@@ -50,7 +50,7 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     Registration.create!(
       user: user,
       conference: @conference,
-      attending_physically: true,
+      attendance_status: "physical",
       agenda_nothing_to_present: true
     )
     invitation = Invitation.create!(
@@ -184,6 +184,16 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Patrick Koers"
     assert_includes response.body, privacy_path
     assert_includes response.body, "Privacy"
+  end
+
+  test "registration modal offers all three attendance statuses" do
+    get root_path
+
+    assert_response :success
+    assert_select "input#attendance-physical-option[name='attendance_mode_choice']"
+    assert_select "input#attendance-online-option[name='attendance_mode_choice']"
+    assert_select "input#attendance-awaiting-travel-approval-option[name='attendance_mode_choice']"
+    assert_includes response.body, "Awaiting Travel Approval"
   end
 
   test "hides Google login on PROD01 while keeping magic-link login available" do

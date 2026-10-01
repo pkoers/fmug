@@ -27,16 +27,9 @@ class RegistrationsController < ApplicationController
       return
     end
 
-    attendance_mode = registration_params[:attendance_mode]
-
-    unless %w[physical online].include?(attendance_mode)
-      redirect_to root_path, alert: "Please choose whether you will attend physically or online."
-      return
-    end
-
     registration = current_user.registrations.build(
       conference: @conference,
-      attending_physically: attendance_mode == "physical",
+      attendance_status: registration_params[:attendance_status],
       agenda_present: registration_params[:agenda_present],
       agenda_question: registration_params[:agenda_question],
       agenda_something_else: registration_params[:agenda_something_else],
@@ -84,7 +77,7 @@ class RegistrationsController < ApplicationController
 
   def registration_params
     params.require(:registration).permit(
-      :attendance_mode,
+      :attendance_status,
       :agenda_present,
       :agenda_question,
       :agenda_something_else,

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_25_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_01_090000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -151,6 +151,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_25_120000) do
     t.boolean "agenda_question", default: false, null: false
     t.boolean "agenda_something_else", default: false, null: false
     t.text "agenda_something_else_text"
+    t.string "attendance_status", null: false
     t.boolean "attending_physically", null: false
     t.text "chair_note"
     t.bigint "conference_id", null: false
@@ -162,6 +163,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_25_120000) do
     t.index ["conference_id"], name: "index_registrations_on_conference_id"
     t.index ["user_id", "conference_id"], name: "index_registrations_on_user_id_and_conference_id", unique: true
     t.index ["user_id"], name: "index_registrations_on_user_id"
+    t.check_constraint "attendance_status::text = ANY (ARRAY['physical'::character varying, 'online'::character varying, 'awaiting_travel_approval'::character varying]::text[])", name: "registrations_attendance_status_check"
   end
 
   create_table "schedules", force: :cascade do |t|

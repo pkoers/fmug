@@ -60,6 +60,33 @@ class RegistrationTest < ActiveSupport::TestCase
     assert_equal "physical", registration.reload.attendance_status
   end
 
+  test "database constraint rejects incompatible attendance status and legacy flag combinations" do
+    [ [ "physical", false ], [ "online", true ], [ "awaiting_travel_approval", true ] ].each do |status, attending_physically|
+      user = User.create!(
+        email: "#{status}-#{attending_physically}@example.com",
+        first_name: "Invalid",
+        last_name: "Compatibility",
+        role: "Member"
+      )
+      registration = Registration.create!(
+        user: user,
+        conference: @conference,
+        attendance_status: "online",
+        agenda_present: true
+      )
+
+      Registration.transaction(requires_new: true) do
+        assert_raises(ActiveRecord::StatementInvalid) do
+          registration.update_columns(attendance_status: status, attending_physically: attending_physically)
+        end
+
+        raise ActiveRecord::Rollback
+      end
+      assert_equal "online", registration.reload.attendance_status
+      assert_not registration.attending_physically?
+    end
+  end
+
   test "user can only register once per conference" do
     Registration.create!(user: @user, conference: @conference, attendance_status: "physical", agenda_present: true)
     duplicate = Registration.new(user: @user, conference: @conference, attendance_status: "online", agenda_question: true)

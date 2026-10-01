@@ -163,7 +163,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_01_090000) do
     t.index ["conference_id"], name: "index_registrations_on_conference_id"
     t.index ["user_id", "conference_id"], name: "index_registrations_on_user_id_and_conference_id", unique: true
     t.index ["user_id"], name: "index_registrations_on_user_id"
-    t.check_constraint "attendance_status::text = ANY (ARRAY['physical'::character varying, 'online'::character varying, 'awaiting_travel_approval'::character varying]::text[])", name: "registrations_attendance_status_check"
+    t.check_constraint "attendance_status::text = 'physical'::text AND attending_physically IS TRUE OR (attendance_status::text = ANY (ARRAY['online'::character varying::text, 'awaiting_travel_approval'::character varying::text])) AND attending_physically IS FALSE", name: "registrations_attendance_status_compatibility_check"
+    t.check_constraint "attendance_status::text = ANY (ARRAY['physical'::character varying::text, 'online'::character varying::text, 'awaiting_travel_approval'::character varying::text])", name: "registrations_attendance_status_check"
   end
 
   create_table "schedules", force: :cascade do |t|

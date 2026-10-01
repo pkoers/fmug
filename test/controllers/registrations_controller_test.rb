@@ -23,7 +23,7 @@ class RegistrationsControllerTest < ActionController::TestCase
       assert_difference("Registration.count", 1) do
         post :create, params: {
           registration: {
-            attendance_mode: "physical",
+            attendance_status: "physical",
             agenda_present: "1",
             agenda_question: "0",
             agenda_something_else: "1",
@@ -40,6 +40,7 @@ class RegistrationsControllerTest < ActionController::TestCase
     registration = Registration.last
     assert_equal @user, registration.user
     assert_equal @conference, registration.conference
+    assert_equal "physical", registration.attendance_status
     assert registration.attending_physically?
     assert registration.agenda_present?
     assert registration.agenda_something_else?
@@ -57,14 +58,54 @@ class RegistrationsControllerTest < ActionController::TestCase
     assert_equal "You are registered for Conference 1. A confirmation email has been sent to registered@example.com.", flash[:notice]
   end
 
-  test "should reject registration without attendance mode" do
+  test "should reject registration without attendance status" do
     session[:user_id] = @user.id
 
     assert_no_difference("Registration.count") do
-      post :create, params: { registration: { attendance_mode: "", agenda_present: "1" } }
+      post :create, params: { registration: { attendance_status: "", agenda_present: "1" } }
     end
 
     assert_redirected_to root_url
+  end
+
+  test "should reject an unknown attendance status" do
+    session[:user_id] = @user.id
+
+    assert_no_difference("Registration.count") do
+      post :create, params: { registration: { attendance_status: "unknown", agenda_present: "1" } }
+    end
+
+    assert_redirected_to root_url
+    assert_equal "Attendance status is not included in the list", flash[:alert]
+  end
+
+  test "should create a registration awaiting travel approval" do
+    session[:user_id] = @user.id
+    delivery_payload = nil
+
+    with_replaced_singleton_method(EmailDeliveryService, :notify, ->(**kwargs) {
+      delivery_payload = kwargs
+      { "messageId" => "<brevo@example.com>" }
+    }) do
+      assert_difference("Registration.count", 1) do
+        post :create, params: {
+          registration: {
+            attendance_status: "awaiting_travel_approval",
+            agenda_present: "1",
+            agenda_question: "0",
+            agenda_something_else: "0",
+            agenda_nothing_to_present: "0",
+            has_dietary_requirements: "0"
+          }
+        }
+      end
+    end
+
+    registration = Registration.last
+    assert_equal "awaiting_travel_approval", registration.attendance_status
+    assert_not registration.attending_physically?
+    assert_includes delivery_payload[:body], "Attendance: Awaiting Travel Approval"
+    assert_includes delivery_payload[:html_body], "Attendance: Awaiting Travel Approval"
   end
 
   test "should reject registration without an agenda selection instead of crashing" do
@@ -73,7 +114,7 @@ class RegistrationsControllerTest < ActionController::TestCase
     assert_no_difference("Registration.count") do
       post :create, params: {
         registration: {
-          attendance_mode: "physical",
+          attendance_status: "physical",
           agenda_present: "0",
           agenda_question: "0",
           agenda_something_else: "0",
@@ -92,7 +133,7 @@ class RegistrationsControllerTest < ActionController::TestCase
     assert_no_difference("Registration.count") do
       post :create, params: {
         registration: {
-          attendance_mode: "physical",
+          attendance_status: "physical",
           agenda_present: "1",
           has_dietary_requirements: "1",
           dietary_requirements_text: "Please specify"
@@ -109,7 +150,7 @@ class RegistrationsControllerTest < ActionController::TestCase
     registration = Registration.create!(
       user: @user,
       conference: @conference,
-      attending_physically: false,
+      attendance_status: "online",
       agenda_nothing_to_present: true
     )
 
@@ -196,10 +237,10 @@ class RegistrationsControllerTest < ActionController::TestCase
     assert_raises(ActiveRecord::RecordNotFound) { get :index, params: { conference_id: @conference.id } }
   end
 
-  test "online legacy registrations and blank optional answers are readable" do
+  test "online registrations and blank optional answers are readable" do
     @user.update!(admin: true)
     session[:user_id] = @user.id
-    registration = create_registration(attending_physically: false)
+    registration = create_registration(attendance_status: "online")
     registration.update_columns(agenda_nothing_to_present: false)
     get :index, params: { conference_id: @conference.id }
 
@@ -212,6 +253,19 @@ class RegistrationsControllerTest < ActionController::TestCase
     registration.update_columns(agenda_something_else: true)
     get :index, params: { conference_id: @conference.id }
     assert_includes response.body, "No additional details provided"
+  end
+
+  test "admin registrations and CSV show awaiting travel approval" do
+    @user.update!(admin: true)
+    session[:user_id] = @user.id
+    create_registration(attendance_status: "awaiting_travel_approval")
+
+    get :index, params: { conference_id: @conference.id }
+    assert_response :success
+    assert_includes response.body, "Awaiting Travel Approval"
+
+    get :index, params: { conference_id: @conference.id }, format: :csv
+    assert_equal "Awaiting Travel Approval", CSV.parse(response.body).second[4]
   end
 
   test "registrations are ordered by first name last name then registration id" do
@@ -348,7 +402,7 @@ class RegistrationsControllerTest < ActionController::TestCase
   private
 
   def create_registration(**attributes)
-    Registration.create!({ user: @user, conference: @conference, attending_physically: true,
+    Registration.create!({ user: @user, conference: @conference, attendance_status: "physical",
       agenda_nothing_to_present: true }.merge(attributes))
   end
 

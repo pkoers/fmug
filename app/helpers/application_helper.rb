@@ -1,6 +1,13 @@
 module ApplicationHelper
   def registration_attendance_label(registration)
-    registration.attending_physically? ? "Physical attendance" : "Online attendance"
+    case registration.attendance_status
+    when "physical"
+      "Physical attendance"
+    when "online"
+      "Online attendance"
+    when "awaiting_travel_approval"
+      "Awaiting Travel Approval"
+    end
   end
 
   def registration_agenda_labels(registration)

@@ -1,13 +1,18 @@
 class Registration < ApplicationRecord
+  enum :attendance_status, {
+    physical: "physical",
+    online: "online",
+    awaiting_travel_approval: "awaiting_travel_approval"
+  }, validate: true
+
   belongs_to :user
   belongs_to :conference
 
-  validates :attending_physically, inclusion: { in: [ true, false ] }
   validates :user_id, uniqueness: { scope: :conference_id }
   validate :agenda_selection_required
   validate :dietary_requirements_text_needed
 
-  before_validation :normalize_optional_text_fields
+  before_validation :normalize_optional_text_fields, :sync_legacy_attending_physically
 
   private
 
@@ -32,5 +37,11 @@ class Registration < ApplicationRecord
     self.dietary_requirements_text = if has_dietary_requirements && cleaned_dietary_text != "Please specify"
       cleaned_dietary_text.presence
     end
+  end
+
+  def sync_legacy_attending_physically
+    return if attendance_status.blank?
+
+    self.attending_physically = physical?
   end
 end

@@ -60,7 +60,7 @@ class ConferencesTest < ApplicationSystemTestCase
   end
 
   test "admin reads registrations and returns to Conference Admin" do
-    Registration.create!(user: @admin, conference: @conference, attending_physically: false,
+    Registration.create!(user: @admin, conference: @conference, attendance_status: "online",
       agenda_something_else: true, agenda_something_else_text: "A workshop about conference planning\nWith a practical discussion",
       has_dietary_requirements: true, dietary_requirements_text: "Vegetarian\nNo nuts",
       chair_note: "Please arrange a short discussion after the morning session. " * 8 + "\nThank you.")

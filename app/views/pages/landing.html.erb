@@ -431,7 +431,12 @@ end %>
           <span>Attend online</span>
         </label>
 
-        <%= form.hidden_field :attendance_mode, id: "attendance-mode-value" %>
+        <label class="registration-modal__choice" for="attendance-awaiting-travel-approval-option">
+          <input type="radio" name="attendance_mode_choice" id="attendance-awaiting-travel-approval-option" class="h-6 w-6 border-stone-300 text-blue-600 focus:ring-blue-500" />
+          <span>Awaiting Travel Approval</span>
+        </label>
+
+        <%= form.hidden_field :attendance_status, id: "attendance-status-value" %>
         <%= form.hidden_field :agenda_present, id: "agenda-present-value", value: "0" %>
         <%= form.hidden_field :agenda_question, id: "agenda-question-value", value: "0" %>
         <%= form.hidden_field :agenda_something_else, id: "agenda-something-else-value", value: "0" %>
@@ -441,7 +446,7 @@ end %>
         <%= form.hidden_field :dietary_requirements_text, id: "dietary-requirements-text-value" %>
         <%= form.hidden_field :chair_note, id: "chair-note-value" %>
 
-        <p id="self-registration-error" class="registration-modal__error" hidden>Please choose either physical or online attendance to continue.</p>
+        <p id="self-registration-error" class="registration-modal__error" hidden>Please choose an attendance option to continue.</p>
 
         <div class="registration-modal__actions">
           <button type="button" id="self-registration-cancel" class="landing-auth__button">Cancel</button>
@@ -453,7 +458,7 @@ end %>
     <div id="self-registration-remove-panel" hidden>
       <p class="registration-modal__copy">You are already registered for this conference.</p>
       <div class="registration-modal__status">
-        Current attendance: <strong><%= @current_registration&.attending_physically? ? "Physical" : "Online" %></strong>
+        Current attendance: <strong><%= registration_attendance_label(@current_registration) if @current_registration %></strong>
       </div>
 
       <div class="registration-modal__actions">
@@ -609,7 +614,8 @@ end %>
     const selfRegistrationError = document.getElementById("self-registration-error");
     const attendancePhysicalOption = document.getElementById("attendance-physical-option");
     const attendanceOnlineOption = document.getElementById("attendance-online-option");
-    const attendanceModeValue = document.getElementById("attendance-mode-value");
+    const attendanceAwaitingTravelApprovalOption = document.getElementById("attendance-awaiting-travel-approval-option");
+    const attendanceStatusValue = document.getElementById("attendance-status-value");
     const selfRegistrationCreatePanel = document.getElementById("self-registration-create-panel");
     const selfRegistrationRemovePanel = document.getElementById("self-registration-remove-panel");
     const selfRegistrationForm = document.getElementById("self-registration-form");
@@ -904,13 +910,18 @@ end %>
       }
 
       if (attendancePhysicalOption?.checked) {
-        if (attendanceModeValue) {
-          attendanceModeValue.value = "physical";
+        if (attendanceStatusValue) {
+          attendanceStatusValue.value = "physical";
         }
       }
       else if (attendanceOnlineOption?.checked) {
-        if (attendanceModeValue) {
-          attendanceModeValue.value = "online";
+        if (attendanceStatusValue) {
+          attendanceStatusValue.value = "online";
+        }
+      }
+      else if (attendanceAwaitingTravelApprovalOption?.checked) {
+        if (attendanceStatusValue) {
+          attendanceStatusValue.value = "awaiting_travel_approval";
         }
       }
       else {

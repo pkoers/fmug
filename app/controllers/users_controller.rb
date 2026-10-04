@@ -1,9 +1,11 @@
 class UsersController < ApplicationController
+  HIDDEN_MEMBER_EMAIL = "pkoers75@gmail.com"
+
   before_action :require_login
   before_action :require_admin, only: :admin
 
   def index
-    @users = User.order(:first_name, :last_name)
+    @users = User.where.not(email: HIDDEN_MEMBER_EMAIL).order(:first_name, :last_name)
     @leadership_profile = LeadershipProfile.current || LeadershipProfile.new
   end
 

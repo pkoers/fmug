@@ -57,6 +57,30 @@ class UsersControllerTest < ActionController::TestCase
     assert_includes response.body, "Delete"
   end
 
+  test "hides the configured member from the list while showing other members and admins" do
+    @member.update!(admin: true)
+    @other_member.update!(admin: true)
+    User.create!(
+      email: " PKOERS75@GMAIL.COM ",
+      first_name: "Patrick",
+      last_name: "Koers",
+      company_name: "FMUG",
+      role: "Chair FMUG",
+      admin: true
+    )
+
+    session[:user_id] = @member.id
+    get :index
+
+    assert_response :success
+    assert_includes response.body, "Ada Lovelace (Admin)"
+    assert_includes response.body, "member@example.com"
+    assert_includes response.body, "Grace Hopper (Admin)"
+    assert_includes response.body, "other@example.com"
+    assert_not_includes response.body, "Patrick Koers"
+    assert_not_includes response.body, "pkoers75@gmail.com"
+  end
+
   test "shows a safe company fallback for legacy members" do
     session[:user_id] = @member.id
     @other_member.update_column(:company_name, nil)

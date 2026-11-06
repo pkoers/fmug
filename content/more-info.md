@@ -1,6 +1,6 @@
-The Agenda will be available soon.
 
 
-**VISA** 
+
+**Social Event** 
 <br>
-If you need a visa, contact the chair asap for assistance
+Details to follow but we have been told not to wear high heels or dress shoes. :-)
